@@ -33,6 +33,7 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
+app.get('/login', user.login);
 app.post('/bowling', bowling.bowlingPost);
 app.post('/cycling', cycling.cyclingPost);
 app.post('/goalball', goalball.goalballPost);
