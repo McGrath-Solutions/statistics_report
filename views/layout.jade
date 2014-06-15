@@ -18,12 +18,23 @@ html
           a.navbar-brand(href="/") Statistics Manager
         .collapse.navbar-collapse
           ul.nav.navbar-nav
-            li
-              a(href="/") Home
-            li
-              a(href="/login") Login
+            - if (user) {
+              li
+                a(href="/") #{user.attributes.name}'s Home
+              li 
+                a(href="/logout") Logout
+              li 
+                a(href="/stats") Statistics Panel
+            - } else {
+              li
+                a(href="/") Home
+              li
+                a(href="/login") Login
+            - }
 
     .container
+      
+
       block content
 
     // bower:js
