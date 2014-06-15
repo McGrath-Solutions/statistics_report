@@ -4,6 +4,7 @@ html
     title= title
     // bower:css
     link(rel='stylesheet', href='bootstrap/dist/css/bootstrap.css')
+    link(rel='stylesheet', href='css/layout.css')
     // endbower
 
     block pagecss
@@ -33,7 +34,11 @@ html
             - }
 
     .container
-      
+      .container
+        - if (messages) {
+          each message in messages
+            div(class="alert alert-#{message.type}")= message.message
+        - }
 
       block content
 

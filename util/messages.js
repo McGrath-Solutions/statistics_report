@@ -7,7 +7,7 @@ module.exports = function() {
         var success_messages = req.flash('success');
         res.locals.messages = [];
         for(var i in error_messages) {
-            res.locals.messages.push({type: 'error', message: error_messages[i]});
+            res.locals.messages.push({type: 'danger', message: error_messages[i]});
         }
         for(var i in info_messages) {
             res.locals.messages.push({type: 'info', message: info_messages[i]});
