@@ -6,10 +6,15 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "mysql": "2.x",
     "express": "3.4.8",
+    "passport": "0.x",
+    "passport-local": "1.x",
+    "connect-flash": "0.x",
+    "bookshelf": "0.x",
     "jade": "*",
     "grunt": "*",
     "grunt-bower-task": "*",
-    "grunt-wiredep": "*"
+    "grunt-wiredep": "1.x"
   }
 }
