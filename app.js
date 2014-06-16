@@ -12,6 +12,7 @@ var messages = require('./util/messages');
 // routes
 var routes = require('./routes');
 var user = require('./routes/user');
+var statistics = require('./routes/statistics');
 
 // Possible statistics
 var goalball = require('./routes/goalball');
@@ -54,6 +55,7 @@ app.get('/', routes.index);
 app.get('/login', user.login);
 app.post('/login', user.checkLogin);
 app.get('/logout', user.logout)
+app.get('/stats', user.ensureAuthenticated, statistics.stats)
 app.post('/bowling', bowling.bowlingPost);
 app.post('/cycling', cycling.cyclingPost);
 app.post('/goalball', goalball.goalballPost);

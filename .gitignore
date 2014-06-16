@@ -44,4 +44,4 @@ bower_components
 
 ## Personal ##
 test
-models/user.js
+models/databaseconfig.js
