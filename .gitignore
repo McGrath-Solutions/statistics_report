@@ -41,6 +41,8 @@ node_modules
 
 ### Bower ###
 bower_components
+public/bootstrap
+public/jquery
 
 ## Personal ##
 test
