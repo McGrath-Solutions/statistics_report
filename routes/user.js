@@ -49,3 +49,22 @@ exports.ensureAuthenticated = function(req, res, next) {
 
   res.redirect('/login');
 };
+
+/*
+ * Middleware to check the user's privilege
+ */
+exports.checkYourPrivilege = function(req, res, next) {
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
