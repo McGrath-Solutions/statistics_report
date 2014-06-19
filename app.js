@@ -8,6 +8,7 @@ var flash = require('connect-flash');
 var Bookshelf = require('bookshelf');
 var passport = require('passport');
 var messages = require('./util/messages');
+var auth = require('./util/authmiddleware');
 
 // routes
 var routes = require('./routes');
@@ -39,6 +40,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use(messages());
+app.use(auth());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -55,7 +57,16 @@ app.get('/', routes.index);
 app.get('/login', user.login);
 app.post('/login', user.checkLogin);
 app.get('/logout', user.logout)
-app.get('/stats', user.ensureAuthenticated, statistics.stats)
+
+// IMPORTANT: for development, removing authentication insurance.
+// This line should be readded during production
+// PRODUCTION LINE
+// app.get('/stats', user.ensureAuthenticated, statistics.stats)
+// DEVELOPMENT LINE
+app.get('/stats', statistics.stats)
+
+// routes continued here
+app.get('/stats/users/:uid', statistics.userpage);
 app.post('/bowling', bowling.bowlingPost);
 app.post('/cycling', cycling.cyclingPost);
 app.post('/goalball', goalball.goalballPost);

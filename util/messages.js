@@ -15,7 +15,6 @@ module.exports = function() {
         for(var i in success_messages) {
             res.locals.messages.push({type: 'success', message: success_messages[i]});
         }   
-        res.locals.isAuthenticated = req.isAuthenticated();
         next();
     }
 }
