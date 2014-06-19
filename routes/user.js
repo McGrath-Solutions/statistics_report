@@ -50,14 +50,3 @@ exports.ensureAuthenticated = function(req, res, next) {
   res.redirect('/login');
 };
 
-
-
-
-
-
-
-
-
-
-
-

@@ -11,3 +11,7 @@ Add user statistics
 High priority:
 ==============
 Upload reports, export reports
+
+Low-Medium Priority:
+====================
+Promisify syntax

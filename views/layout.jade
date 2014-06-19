@@ -22,7 +22,7 @@ html
           ul.nav.navbar-nav
             - if (user) {
               li
-                a(href="/") #{user.attributes.name}'s Home
+                a(href="/stats/users/#{user.attributes.uid}") #{user.attributes.name}'s Home
               li 
                 a(href="/logout") Logout
               li 
