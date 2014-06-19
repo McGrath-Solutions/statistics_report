@@ -15,3 +15,4 @@ Upload reports, export reports
 Low-Medium Priority:
 ====================
 Promisify syntax
+JSLint/JSHint the hell out of this

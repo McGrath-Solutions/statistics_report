@@ -1,5 +1,5 @@
 // Imports
-var dbinfo = require('./dbconfig');
+var dbinfo = require('./databaseconfig');
 var knex = require('knex')(dbinfo);
 
 var bookshelf = require('bookshelf')(knex);
@@ -49,7 +49,7 @@ function makeEvent() {
 
   // Database table for Event coordinator
   var EventCoordinator = bookshelf.Model.extend({
-    tableName: "field_data_field_event_coordinator"
+    tableName: "field_data_field_event_coordinater"
   });
 
   // Database table for Event Sport
@@ -83,6 +83,7 @@ function makeEvent() {
   }
 
   // Event prototype objects
+  /*
   Event.prototype.EventNode = EventNode;
   Event.prototype.EventDescription = EventDescription;
   Event.prototype.EventDate = EventDate;
@@ -90,6 +91,7 @@ function makeEvent() {
   Event.prototype.EventCoordinator = EventCoordinator;
   Event.prototype.EventSport = EventSport;
   Event.prototype.EventType = EventType;
+  */
 
   // Initialize from Event database model
   Event.prototype.initFromDatabaseObject = function(model) {
@@ -97,37 +99,39 @@ function makeEvent() {
     initObject.name = model.attributes.title;
     initObject.description = model.related("description").attributes.field_event_description_value;
     initObject.start = model.related('date').attributes.field_event_date_value
-    initObejct.end = model.related('date').attributes.field_event_date_value2;
+    initObject.end = model.related('date').attributes.field_event_date_value2;
     initObject.location = {
       company: model.related('location').attributes.field_event_location_organisation_name,
       state: model.related('location').attributes.field_event_location_administrative_area,
       city: model.related('location').attributes.field_event_location_dependent_locality,
-      address1: model.related('location').attributes.field_event_location_thoroughfare;
-      address2: model.related('location').attributes.field_event_location_premise;
-    }
+      address1: model.related('location').attributes.field_event_location_thoroughfare,
+      address2: model.related('location').attributes.field_event_location_premise
+    };
+
     initObject.sport = model.related('sport').attributes.field_event_sport_value;
     initObject.type = model.related('type').attributes.field_event_type_value;
 
     return new Event(initObject);
   }
 
-  // Load an array of every single Event object. Currently takes a callback function.
+  // Load an array of every single Event object in database and call callback with that array. 
+  // Currently takes a callback function.
   // TODO: write as a promise
   Event.prototype.loadObjects = function(callback) {
-    new this.EventNode.query('where', 'type', '=', 'event').fetchAll({
+    new EventNode().query('where', 'type','=', 'event').fetchAll({
       withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type']
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];
       for (var i = 0; i < models.length; i++) {
-        objects.push(this.initFromDatabaseObject(models[i]));
+        objects.push(Event.prototype.initFromDatabaseObject(models[i]));
       }
 
       callback(objects);
     })
   }
-  
+
   return Event;
 }
 
-modules.exports = makeEvent();
+module.exports = makeEvent();
