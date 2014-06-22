@@ -43,6 +43,7 @@ node_modules
 bower_components
 public/bootstrap
 public/jquery
+public/angular
 
 ## Personal ##
 test
