@@ -14,7 +14,8 @@
   ],
   "dependencies": {
     "bootstrap": "latest",
-    "jquery": "latest"
+    "jquery": "latest",
+    "angular": "latest"
   },
   "license": "MIT",
   "private": true,

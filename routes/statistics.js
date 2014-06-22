@@ -7,12 +7,12 @@ exports.stats = function(req, res) {
 
 // Accept user uploads of xls, csv based reports files
 exports.upload = function(req, res) {
-
+  res.render('import', {user: req.user});
 }
 
-// Page to export reports as csv files (TODO add xls report exports)
+// Page to export reports as csv files
 exports.reports = function(req, res) {
-
+  res.render('export', {user: req.user});
 }
 
 // Respond to post requests asking for a reports file with a reports file

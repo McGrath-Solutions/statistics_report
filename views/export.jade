@@ -1,0 +1,21 @@
+extends layout
+
+block pagecss
+  link(rel="stylesheet", href="/css/stats.css")
+
+block content
+  .container
+    .statsbasicmenu
+      h1 Export Reports
+
+      div.btn-group
+        button.btn.btn-default.btn-lg.dropdown-toggle(data-toggle="dropdown") Choose a report type to generate 
+          span.caret
+        ul.dropdown-menu(role="menu")
+          li
+            a(href="#program", id="program") Tnaba state monthly program report
+          li
+            a(href="#member", id="member") Tnaba state monthly membership report
+          li
+            a(href="#signin", id="signin") Tnaba event monthly report
+

@@ -1,8 +1,14 @@
+// TODO:
+// Learn more about bookshelfjs to make de-derpify
+
 // Imports
 var dbinfo = require('./databaseconfig');
 var knex = require('knex')(dbinfo);
 
 var bookshelf = require('bookshelf')(knex);
+
+// Other model imports
+var Registration = require('./registration');
 
 // Event object. 
 function makeEvent() {
@@ -29,6 +35,9 @@ function makeEvent() {
     },
     type: function() {
       return this.hasOne(EventType, "entity_id");
+    },
+    registrations: function() {
+      return this.hasMany(Registration.RegistrationNode, "entity_id");
     }
   });
 
@@ -62,44 +71,43 @@ function makeEvent() {
     tableName: "field_data_field_event_type"
   });
 
-  // Registration database table for event type
-  var Registration = bookshelf.Model.extend({
-    tableName: "registration"
-  })
-
   // Event constructor declarations
   function Event(initializationObject) {
+    this.id = initializationObject.id;
     this.name = initializationObject.name;
     this.description = initializationObject.description;
-    this.start = initializationObject.startDate;
-    this.end = initializationObject.endDate;
+    this.start = new Date(initializationObject.startDate);
+    this.end = new Date(initializationObject.endDate);
 
-    // Location is expect to be a JSON object with fields
+    // Location is expect to be a Javascript object with fields
     // company,
     this.location = initializationObject.location;
     this.coordinator = initializationObject.coordinator;
     this.sport = initializationObject.sport;
     this.type = initializationObject.type;
+
+    // Registration is expected to be a Javascript object with fields of
+    // Registration
+    this.registrations = initializationObject.registrations;
   }
 
-  // Event prototype objects
-  /*
-  Event.prototype.EventNode = EventNode;
-  Event.prototype.EventDescription = EventDescription;
-  Event.prototype.EventDate = EventDate;
-  Event.prototype.EventLocation = EventLocation;
-  Event.prototype.EventCoordinator = EventCoordinator;
-  Event.prototype.EventSport = EventSport;
-  Event.prototype.EventType = EventType;
-  */
+  // Event Export objects
+  Event.EventNode = EventNode;
+  Event.EventDescription = EventDescription;
+  Event.EventDate = EventDate;
+  Event.EventLocation = EventLocation;
+  Event.EventCoordinator = EventCoordinator;
+  Event.EventSport = EventSport;
+  Event.EventType = EventType;
 
-  // Initialize from Event database model
-  Event.prototype.initFromDatabaseObject = function(model) {
+  // Event export functions
+  Event.initFromDatabaseObject = function(model) {
     var initObject = {};
+    initObject.id = model.attributes.nid;
     initObject.name = model.attributes.title;
     initObject.description = model.related("description").attributes.field_event_description_value;
-    initObject.start = model.related('date').attributes.field_event_date_value
-    initObject.end = model.related('date').attributes.field_event_date_value2;
+    initObject.startDate = model.related('date').attributes.field_event_date_value
+    initObject.endDate = model.related('date').attributes.field_event_date_value2;
     initObject.location = {
       company: model.related('location').attributes.field_event_location_organisation_name,
       state: model.related('location').attributes.field_event_location_administrative_area,
@@ -107,9 +115,21 @@ function makeEvent() {
       address1: model.related('location').attributes.field_event_location_thoroughfare,
       address2: model.related('location').attributes.field_event_location_premise
     };
-
+    initObject.coordinator = model.related('coordinator').attributes.field_event_coordinater_target_id;
     initObject.sport = model.related('sport').attributes.field_event_sport_value;
     initObject.type = model.related('type').attributes.field_event_type_value;
+    
+    // Registrations
+    var regModels = model.related('registrations').models;
+    var util = require('util');
+    var registrations = [];
+    for (var i = 0; i < regModels.length; i++) {
+      registrations.push(Registration.initFromDatabaseObject(regModels[i]));
+    }
+
+    // Is a sub-registration object (some references undefined due to lack of necessity);
+    initObject.registrations = registrations;
+
 
     return new Event(initObject);
   }
@@ -117,18 +137,18 @@ function makeEvent() {
   // Load an array of every single Event object in database and call callback with that array. 
   // Currently takes a callback function.
   // TODO: write as a promise
-  Event.prototype.loadObjects = function(callback) {
+  Event.loadObjects = function(callback) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
-      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type']
+      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations']
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];
       for (var i = 0; i < models.length; i++) {
-        objects.push(Event.prototype.initFromDatabaseObject(models[i]));
+        objects.push(Event.initFromDatabaseObject(models[i]));
       }
 
       callback(objects);
-    })
+    });
   }
 
   return Event;

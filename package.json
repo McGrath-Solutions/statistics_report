@@ -17,6 +17,9 @@
     "jade": "*",
     "grunt": "*",
     "grunt-bower-task": "*",
-    "grunt-wiredep": "1.x"
+    "grunt-wiredep": "1.x",
+    "msexcel-builder": "0.x",
+    "mkdirp": "0.x",
+    "lodash": "2.x"
   }
 }

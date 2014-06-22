@@ -1,6 +1,12 @@
 extends layout
 
 block pagecss
+  link(rel="stylesheet", href="/css/stats.css")
 
 block content
-  
+  .container
+    .statsbasicmenu
+      h1 Statistics Management
+      a.btn.btn-block.btn-lg.btn-primary(href="/stats/export", role="button") Export Report
+      a.btn.btn-block.btn-lg.btn-success(href="/stats/import", role="button") Import Report
+      a.btn.btn-block.btn-lg.btn-warning(href="/stats/edit", role="button") Manage Statistics

@@ -64,6 +64,8 @@ app.get('/logout', user.logout)
 // app.get('/stats', user.ensureAuthenticated, statistics.stats)
 // DEVELOPMENT LINE
 app.get('/stats', statistics.stats)
+app.get('/stats/export', statistics.reports);
+app.get('/stats/import', statistics.upload);
 
 // routes continued here
 app.get('/stats/users/:uid', statistics.userpage);
