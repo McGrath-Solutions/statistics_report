@@ -5,13 +5,11 @@ var _ = require('lodash');
 function makeUtil() {
   /*
    * A table is defined by a schema and a set of labels for that schema (both arrays)
+   * @param title = The title of the table
    * @param schema = the schema of the table, defined as an array of typenames
-   * @param 
+   * @param labels = the labels for each column in the table, should be equal in size with the schema
    */
-  var Table = function(schema, labels) {
-    // Table schema
-    this.columnArray = columnArray;
-
+  var Table = function(title, schema, labels) {
     // Entries in the table
     if (schema.length != labels.length) {
       throw new Error("Table: schema and label array must be the same length");
@@ -27,13 +25,16 @@ function makeUtil() {
     
     // Schema can consist of "number", "string", "date", "boolean"
     this.schema = schema;
-    this.length = length;
+    this.length = schema.length;
     this.rows = [];
   }
 
 
+  /*
+   * Add a row of elements to a table. 
+   */
   Table.prototype.pushRow = function(row) {
-    var entry = [];
+    if (row.length != this.length) throw new Error("Table: Length mismatch");
     
     for (var i = 0; i < row.length; i++) {
       var type = this.schema[i];
@@ -56,9 +57,9 @@ function makeUtil() {
           throw new Error("Table: incorrect entry type at index " + i);
         }
       }
-
-
     }
+    
+    this.rows.push(row);
   }
 
 
@@ -70,10 +71,10 @@ function makeUtil() {
     var COLUMN_WISE = 0;
     var ROW_WISE = 1;
 
-    var opts({
+    var opts = {
       filePath: "./report",
       layout: ROW_WISE
-    });
+    };
 
     if (options) {
       opts.fileName = options.fileName || opts.fileName;
@@ -82,6 +83,8 @@ function makeUtil() {
 
     var workbook = xls.createWorkbook()
   }
+
+  ExcelUtil.Table = Table;
 
   return ExcelUtil;
 }
