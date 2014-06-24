@@ -171,6 +171,7 @@ function makeUtil() {
       var y = 1;
       // Set the title of the sheet
       sheet.set(center, y, sheetData.name);
+      sheet.border(center, y, {bottom: "medium"});
 
       // Padding before first table
       y += 3;
@@ -180,21 +181,53 @@ function makeUtil() {
       
       var numTables = tables.length;
       for (var tableIndex = 0; tableIndex < numTables; tableIndex++) {
+        // Marign between the edge of the sheet and the table
+        var TABLE_MARGIN = 2;
         var table = tables[tableIndex];
-        sheet.set(center, y, table.title);
+        var startIndex = Math.floor((sheetWidth - 2 * TABLE_MARGIN) / 2 - table.length / 2);
+
+        // Write the title of the table
+        sheet.set(startIndex + TABLE_MARGIN, y, table.title);
+        sheet.border(startIndex + TABLE_MARGIN, y, {bottom: "medium"})
         y++;
 
-        // Write labels
+        // Write column labels
         for (var i = 1; i <= table.length; i++) {
-          sheet.set(i, y, table.labels[i]);
+          sheet.set(i + TABLE_MARGIN + startIndex, y, table.labels[i - 1]);
+
+          // Set the edge border around the labels
+          if (i === 1) {
+            sheet.border(i + TABLE_MARGIN + startIndex, y, {left: "medium", top: "medium", bottom: "medium"});
+          } else if (i === table.length) {
+            sheet.border(i + TABLE_MARGIN + startIndex, y, {right: "medium", top: "medium", bottom: "medium"});
+          } else {
+            sheet.border(i + TABLE_MARGIN + startIndex, y, {top: "medium", bottom: "medium"});
+          }
         }
         y++;
 
         // Write contents
         for (var i = 0; i < table.entries; i++) {
           var row = table.rows[i];
+
+          // Inner loop: iterate through each data row
           for (var j = 1; j <= row.length; j++) {
-            sheet.set(j, y, row[j - 1]);
+            sheet.set(j + TABLE_MARGIN + startIndex, y, row[j - 1]);
+
+            var borderObject = {};
+            // If at the edges, set the border for the edge of the sheet
+            if (j === 1) {
+              borderObject.left = "medium";
+            } else if (j === row.length) {
+              borderObject.right = "medium";
+            }
+
+            // If at the bottom at the table, set the border for the bottom
+            if (i === table.entries - 1) {
+              borderObject.bottom = "medium";
+            }
+
+            sheet.border(j + TABLE_MARGIN + startIndex, y, borderObject);
           }
           y++;
         }
