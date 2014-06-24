@@ -57,10 +57,10 @@ console.log(Table3);
     var string = "";
 
     var num = Math.floor(Math.random() * 1000);
-    string += num;
+    string += num + "-";
 
-    var num = Math.floor(Math.random() * 10000);
-    string += num;
+    var num = Math.floor(Math.random() * 1000);
+    string += num + "-";
 
     var num = Math.floor(Math.random() * 10000);
     string += num;
@@ -128,3 +128,9 @@ var excelObject = {
     data: [Table4, Table5, Table6]
   }
 }
+
+// Writing Excel
+xls(excelObject, function(err) {
+  if (err) console.log(err);
+  console.log("Good Job!");
+});
