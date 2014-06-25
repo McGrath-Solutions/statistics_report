@@ -121,6 +121,10 @@ console.log(Table6);
 var excelObject = {
   sheet1: {
     name: "Sheet 1", 
+    information: {
+      generated: new Date(),
+      author: "Mike Zhang"
+    },
     data: [Table1, Table2, Table3]
   },
   sheet2: {
@@ -133,4 +137,4 @@ var excelObject = {
 xls(excelObject, function(err) {
   if (err) console.log(err);
   console.log("Good Job!");
-});
+}, {fileName: "./reportsfolder/report.xlsx"});

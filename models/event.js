@@ -38,6 +38,9 @@ function makeEvent() {
     },
     registrations: function() {
       return this.hasMany(Registration.RegistrationNode, "entity_id");
+    },
+    sportsClub: function() {
+      return this.hasOne(EventSportsClub, "entity_id");
     }
   });
 
@@ -71,6 +74,11 @@ function makeEvent() {
     tableName: "field_data_field_event_type"
   });
 
+  // Database table for Event Sports Club
+  var EventSportsClub = bookshelf.Model.extend({
+    tableName: "field_data_field_sports_club"
+  })
+
   // Event constructor declarations
   function Event(initializationObject) {
     this.id = initializationObject.id;
@@ -85,6 +93,7 @@ function makeEvent() {
     this.coordinator = initializationObject.coordinator;
     this.sport = initializationObject.sport;
     this.type = initializationObject.type;
+    this.club = initializationObject.club;
 
     // Registration is expected to be a Javascript object with fields of
     // Registration
@@ -118,6 +127,10 @@ function makeEvent() {
     initObject.coordinator = model.related('coordinator').attributes.field_event_coordinater_target_id;
     initObject.sport = model.related('sport').attributes.field_event_sport_value;
     initObject.type = model.related('type').attributes.field_event_type_value;
+    initObject.club = model.related('sportsClub').attributes.field_sports_club_value;
+
+    //console.log("Club info: ");
+    //console.log(model.related('sportsClub').attributes);
     
     // Registrations
     var regModels = model.related('registrations').models;
@@ -134,12 +147,45 @@ function makeEvent() {
     return new Event(initObject);
   }
 
+  Event.loadObjectsByMonth = function(date, callback) {
+    var month = date.getMonth();
+    var year = date.getFullYear();
+
+    console.log("Month: " + month);
+    console.log("Year: " + year);
+
+    var dateStart = new Date(year, month, 1);
+    var dateEnd = new Date(year, month + 1, 1)
+    var relevantObjs = [];
+
+    console.log("Start: " + dateStart);
+    console.log("End: " + dateEnd);
+    // Hack-y 
+    Event.loadObjects(function(objects) {
+      var length = objects.length;
+
+      for (var i = 0; i < length; i++) {
+        var object = objects[i];
+        // If the object date fields fulfill the boundary conditions
+        //console.log("Start: " + (object.start >= dateStart && object.start < dateEnd) );
+        //console.log("End: " + (object.end >= dateStart && object.end < dateEnd));
+        if ( (object.start >= dateStart && object.start < dateEnd) ||
+             (object.end >= dateStart && object.end < dateEnd) ) {
+          relevantObjs.push(object);
+        }
+      }
+
+      callback(relevantObjs);
+    });
+  }
+
   // Load an array of every single Event object in database and call callback with that array. 
   // Currently takes a callback function.
   // TODO: write as a promise
   Event.loadObjects = function(callback) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
-      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations']
+      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
+      'sportsClub']
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];
