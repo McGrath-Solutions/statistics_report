@@ -10,6 +10,5 @@ var printstuff = function(models) {
 }
 
 
-//Event.loadObjects(printstuff);
-
-Event.loadObjectsByMonth(new Date(2014, 5, 1), printstuff);
+Event.loadObjects(printstuff);
+//Event.loadObjectsByMonth(new Date(2014, 5, 1), printstuff);

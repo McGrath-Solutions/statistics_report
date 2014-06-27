@@ -3,7 +3,7 @@ var knex = require('knex')(dbconfig);
 
 var Bookshelf = require('bookshelf')(knex);
 
-module.exports = function() {
+module.exports = (function() {
   var User = Bookshelf.Model.extend({
     tableName: 'users',
     idAttribute: 'uid',
@@ -20,6 +20,38 @@ module.exports = function() {
       return this.hasOne(UserIsVeteran, 'entity_id');
     }
   });
+
+  User.makeUserObject = function(model) {
+    if (!model) {
+      return {};
+    }
+
+    var obj = {};
+    obj.id = model.attributes.uid;
+    obj.roles = model.related('roles').attributes.rid;
+    obj.dob = model.related('dateOfBirth').attributes.field_date_of_birth_value;
+    obj.gender = model.related('gender').attributes.field_gender_value;
+
+    // Check if the user is a veteran
+    var veteranStatus = model.related('isVeteran').attributes.field_veteran_status_value
+    obj.isVeteran = false;
+    if (veteranStatus !== 'Does Not Apply') {
+      obj.isVeteran = true;
+    }
+
+    return obj;
+  }
+
+  User.getUserObjectById = function(userId, callback) {
+    new User({uid: userId}).fetch({
+      withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']
+    }).then(function(model) {
+      // console.log(model)
+      var object = User.makeUserObject(model);
+
+      callback(object);
+    });
+  }
 
   var UserRole = Bookshelf.Model.extend({
     tableName: 'users_roles'
@@ -38,4 +70,4 @@ module.exports = function() {
   });
 
   return User;
-}
+})();

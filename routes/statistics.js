@@ -30,7 +30,7 @@ exports.userpage = function(req, res) {
   // get user statistics from database. Check if the specified user exists.
   // If the specified user exists, send relevant data to the page for prerendering.
   // If the specified user does not exist, return error. 
-  var user = require('../models/user')();
+  var user = require('../models/user');
 
   // Do this task asynchronously through promises
   new user({uid: uid}).fetch().then(function(user) {

@@ -6,6 +6,7 @@ var knex = require('knex')(dbinfo);
 
 var bookshelf = require('bookshelf')(knex);
 
+var User = require('./user');
 function makeRegistration() {
 
   // Event Node base (to avoid circular references in the most minimalistic way posssible)
@@ -25,6 +26,9 @@ function makeRegistration() {
     },
     notes: function() {
       return this.hasOne(RegistrationNotes, "entity_id");
+    },
+    user: function() {
+      return this.belongsTo(User, "user_uid");
     }
   });
 
@@ -41,6 +45,7 @@ function makeRegistration() {
   var Registration = function(initializationObject) {
     this.id = initializationObject.id;
     this.uid = initializationObject.uid;
+    this.user = initializationObject.user;
     this.eventName = initializationObject.eventName;
     this.eventId = initializationObject.eventId;
     if (this.uid) this.isAnon = false;
@@ -55,8 +60,11 @@ function makeRegistration() {
   Registration.RegistrationType = RegistrationType;
   Registration.RegistrationNotes = RegistrationNotes;
 
+  /* Initialize a registration from a Bookshelf model */
   Registration.initFromDatabaseObject = function(model) {
-    //console.log(model);
+    if (!model) {
+      throw new Error("Model: Model is not defined");
+    }
 
     var init = {};
     init.id = model.attributes.registration_id;
@@ -67,13 +75,55 @@ function makeRegistration() {
     init.type = model.related('type').attributes.field_registration_type_value;
     init.notes = model.related('notes').attributes.field_notes_and_accommodations_value;
 
+    init.user = model.related('user');
+
     return new Registration(init);
   }
 
-  Registration.loadObjects = function(callback) {
+  /* Load the user object associated with this registration */
+  Registration.loadUserObject = function(registration, callback, errorCallback) {
+    if (!registration.uid) {
+      throw new Error("Registration: Cannot fetch User from anonymous Registration");
+    }
+
+    var id = registration.uid;
+    new User({uid: id}).fetch().then(function onSuccess(model) {
+      var obj = User.makeUserObject(model);
+      callback(obj);
+    }).catch(function(err) {
+      if (errorCallback) {
+        errorCallback(err);
+      } else {
+        console.error(err);
+      }
+    });
+  }
+
+  /* Load registration by number. This is useful if you need more information about an 
+   * an event registration object such as type of registration etc.  */
+  Registration.loadRegistrationById = function(id, callback, errorCallback) {
+    new RegistrationNode({registration_id: id}).fetch({
+      withRelated: ['event', 'type', 'notes', 'user']
+    })
+    .then(function onSuccess(registration) {
+      var object = Registration.initFromDatabaseObject(registration);
+
+      callback(object);
+    }).catch(function onFailure(err) {
+      if (errorCallback) {
+        errorCallback(err);
+      } else {
+        console.error(err);
+      }
+    })
+  }
+
+
+  /* Load objects from the database */
+  Registration.loadObjects = function(callback, errorCallback) {
     // Potential bug: Loads all registrations. Potentially need a filter.
     new RegistrationNode().fetchAll({
-      withRelated: ['event', 'type', 'notes']
+      withRelated: ['event', 'type', 'notes', 'user']
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];
@@ -82,7 +132,13 @@ function makeRegistration() {
       }
 
       callback(objects);
-    })
+    }).catch(function(err) {
+      if (errorCallback) {
+        errorCallback(err);
+      } else {
+        console.error(err);
+      }
+    });
   }
 
   return Registration;
@@ -90,14 +146,3 @@ function makeRegistration() {
 
 
 module.exports = makeRegistration();
-
-
-
-
-
-
-
-
-
-
-

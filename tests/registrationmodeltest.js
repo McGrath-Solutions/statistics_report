@@ -3,11 +3,17 @@ var Registration = require('../models/registration');
 var printstuff = function(models) {
   for (var i = 0; i < models.length; i++) {
     //console.log(typeof model);
-    console.log(models);
+    console.log(models[i]);
   }
 }
 
+// Print all models
 Registration.loadObjects(printstuff);
+
+Registration.loadRegistrationById(2, function(reg) {
+  console.log("Your loaded reg: ");
+  console.log(reg);
+})
 
 // Update node
 new Registration.RegistrationNode(

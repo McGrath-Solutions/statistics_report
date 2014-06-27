@@ -9,6 +9,7 @@ var bookshelf = require('bookshelf')(knex);
 
 // Other model imports
 var Registration = require('./registration');
+var User = require('./user');
 
 // Event object. 
 function makeEvent() {
@@ -41,6 +42,9 @@ function makeEvent() {
     },
     sportsClub: function() {
       return this.hasOne(EventSportsClub, "entity_id");
+    }, 
+    users: function() {
+      return this.hasMany(User, "entity_id").through(Registration.RegistrationNode, "uid");
     }
   });
 
@@ -111,6 +115,9 @@ function makeEvent() {
 
   // Event export functions
   Event.initFromDatabaseObject = function(model) {
+    console.log("Model");
+    console.log(model);
+
     var initObject = {};
     initObject.id = model.attributes.nid;
     initObject.name = model.attributes.title;
@@ -147,6 +154,27 @@ function makeEvent() {
     return new Event(initObject);
   }
 
+  /*
+   * Takes an Event Model model with associated registration and calls callback
+   * with an array of associated users and their relevant information
+   * @param model = the Event model;
+   * @param callback = the callback to be called;
+   */
+  Event.loadRegisteredUserInformation = function(model, callback) {
+    var registrations = model.registrations;
+    var length = registrations.length;
+    for (var i = 0; i < length; i++) {
+      var reg = registrations[i];
+
+    }
+  }
+
+  /* 
+   * Loads events registered within the month specified in date. Calls callback with the 
+   * loaded events
+   * @param date = a date object with the desired month of the desired year;
+   * @param callback = the callback to be called;
+   */
   Event.loadObjectsByMonth = function(date, callback) {
     var month = date.getMonth();
     var year = date.getFullYear();
@@ -185,7 +213,7 @@ function makeEvent() {
   Event.loadObjects = function(callback) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
       withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
-      'sportsClub']
+      'sportsClub', 'users']
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];

@@ -1,7 +1,7 @@
 // Authentication for a drupal mysql database
 var crypto = require('crypto');
 var LocalStrategy = require('passport-local').Strategy;
-var user = require('../models/user')();
+var user = require('../models/user');
 
 /* Direct translation from drupal's password.inc
  * Drupal, being a very funky guy, has it's own unique way of encoding base64
