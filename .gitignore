@@ -48,3 +48,6 @@ public/angular
 ## Personal ##
 test
 models/databaseconfig.js
+
+## xl reports **
+*.xlsx
