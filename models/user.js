@@ -42,7 +42,7 @@ module.exports = (function() {
     return obj;
   }
 
-  User.getUserObjectById = function(userId, callback) {
+  User.getUserObjectById = function(userId, callback, errorCallback) {
     new User({uid: userId}).fetch({
       withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']
     }).then(function(model) {
@@ -50,7 +50,13 @@ module.exports = (function() {
       var object = User.makeUserObject(model);
 
       callback(object);
-    });
+    }).catch(function(err) {
+      if (errorCallback) {
+        errorCallback(err);
+      } else {
+        console.error(err);
+      }
+    })
   }
 
   var UserRole = Bookshelf.Model.extend({

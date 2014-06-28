@@ -112,6 +112,27 @@ function makeUtil() {
   }
 
   /*
+   * Add a row of elements to the table where the row is an object
+   */
+  Table.prototype.pushObjectRow = function(rowValues) {
+    var keys = Object.keys(rowValues);
+    var arr = [];
+    for (var i = 0; i < keys.length; i++) {
+      // Push the next value into the array
+      arr[i] = rowValues[keys[i]];
+    }
+
+    // Debug code
+    /*
+    console.log("Attempting to push this array: ");
+    console.log(arr);
+    console.log("Has length: " + arr.length);
+    */
+
+    this.pushRow(arr);
+  }
+
+  /*
    * Get the number of entries in the table
    */
   Table.prototype.getNumEntries = function() {
@@ -127,6 +148,8 @@ function makeUtil() {
 
 
   var ExcelWrite = function(dataObject, callback, options) {
+    var util = require('util');
+
     // Is the layout columnwise or row-wise?
     /* 
      * Ie should the column titles be aligned row major or column major?
@@ -168,8 +191,12 @@ function makeUtil() {
       var sheetWidth = getSheetWidth(sheetData.data);
       var sheetHeight = getSheetHeight(sheetData.data, sheetData.information);
 
+      // Debug code
+      console.log("Width: " + sheetWidth);
+      console.log("Height: " + sheetHeight);
+
       var sheet = workbook.createSheet(sheetName, sheetWidth, sheetHeight);
-      var center = sheetWidth / 2;
+      var center = Math.floor(sheetWidth / 2);
       var y = 1;
 
       // Set the width of columns in use
@@ -180,6 +207,10 @@ function makeUtil() {
         //console.log("Set column length for " + (i + TABLE_MARGIN + startIndex));
         sheet.width(i + TABLE_MARGIN + startIndex, 20);
       }
+
+      // Debug code
+      console.log("center: " + center);
+      console.log("y: " + y);
 
       // Set the title of the sheet
       sheet.set(center, y, sheetData.name);

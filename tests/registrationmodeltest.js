@@ -10,9 +10,12 @@ var printstuff = function(models) {
 // Print all models
 Registration.loadObjects(printstuff);
 
-Registration.loadRegistrationById(2, function(reg) {
+Registration.loadRegistrationById(10, function(reg) {
   console.log("Your loaded reg: ");
   console.log(reg);
+}, function(err) {
+  console.error("Ruh roh! Error occured.");
+  console.error(err);
 })
 
 // Update node

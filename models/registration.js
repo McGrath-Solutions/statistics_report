@@ -87,6 +87,9 @@ function makeRegistration() {
     }
 
     var id = registration.uid;
+    var object = User.getUserObjectById(id, callback, errorCallback);
+
+    /*
     new User({uid: id}).fetch().then(function onSuccess(model) {
       var obj = User.makeUserObject(model);
       callback(obj);
@@ -97,6 +100,7 @@ function makeRegistration() {
         console.error(err);
       }
     });
+    */
   }
 
   /* Load registration by number. This is useful if you need more information about an 

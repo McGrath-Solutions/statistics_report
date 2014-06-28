@@ -115,8 +115,8 @@ function makeEvent() {
 
   // Event export functions
   Event.initFromDatabaseObject = function(model) {
-    console.log("Model");
-    console.log(model);
+    // console.log("Model");
+    // console.log(model);
 
     var initObject = {};
     initObject.id = model.attributes.nid;
