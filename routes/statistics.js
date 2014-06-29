@@ -17,7 +17,7 @@ exports.reports = function(req, res) {
 
 // Respond to post requests asking for a reports file with a reports file
 exports.genReport = function(req, res) {
-
+  
 }
   
 

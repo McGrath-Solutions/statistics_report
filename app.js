@@ -39,6 +39,10 @@ app.use(auth());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
+// For debug, make it pretty
+app.locals.pretty = true;
+
+
 // development only
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());

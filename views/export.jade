@@ -2,18 +2,31 @@ extends layout
 
 block pagecss
   link(rel="stylesheet", href="/css/stats.css")
+  link(rel="stylesheet", href="/css/export.css")
 
 block content
-  .container
-    .statsbasicmenu
-      h1 Export Reports
+  .statsbasicmenu
+    h1 Export Reports
 
+    //- Previous Version
       div.btn-group
-        button.btn.btn-default.btn-lg.dropdown-toggle(data-toggle="dropdown") Choose a report type to generate 
+        button.btn.btn-default.btn-lg.dropdown-toggle(data-toggle="dropdown") Report Type 
           span.caret
         ul.dropdown-menu(role="menu")
           li
             a(href="#member", id="member") Tnaba state monthly membership report
           li
-            a(href="#signin", id="signin") Tnaba event monthly report
+            a(href="#monthly", id="monthly") Tnaba event monthly report
+      br
+      button.btn-primary.btn-lg() Download Report
+    h4 Select a report type to generate
+    div.btn-group-vertical
+      button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
+      button.btn.btn-default(type="button", id="event") Tnaba event monthly report
+
+    <br>
+    button.btn.btn-primary.btn-lg(id="download") Download Report
+
+block pagejavascript
+  script(src="/js/export.js")
 

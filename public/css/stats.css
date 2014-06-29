@@ -1,5 +1,10 @@
 .statsbasicmenu {
   max-width: 700;
+  height: 100%;
   text-align: center;
   margin: 0 auto;
+}
+
+.statsbasicmenu .btn {
+  font-size: 20px;
 }
