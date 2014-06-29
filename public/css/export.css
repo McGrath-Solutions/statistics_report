@@ -2,3 +2,15 @@
   display: inline-block;
   margin-top: 10px;
 }
+
+#download.notReady {
+  display: none;
+}
+
+#selected {
+  color: red;
+}
+
+#membership, #event {
+  
+}
