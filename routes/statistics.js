@@ -1,4 +1,4 @@
-
+var genReport = require('../util/reportsGenerator');
 
 /* Default statistics page */
 exports.stats = function(req, res) {

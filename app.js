@@ -15,11 +15,6 @@ var routes = require('./routes');
 var user = require('./routes/user');
 var statistics = require('./routes/statistics');
 
-// Possible statistics
-var goalball = require('./routes/goalball');
-var bowling = require('./routes/bowling');
-var cycling = require('./routes/cycling');
-
 var http = require('http');
 var path = require('path');
 
@@ -66,12 +61,7 @@ app.get('/logout', user.logout)
 app.get('/stats', statistics.stats)
 app.get('/stats/export', statistics.reports);
 app.get('/stats/import', statistics.upload);
-
-// routes continued here
 app.get('/stats/users/:uid', statistics.userpage);
-app.post('/bowling', bowling.bowlingPost);
-app.post('/cycling', cycling.cyclingPost);
-app.post('/goalball', goalball.goalballPost);
 
 // Authentication middleware: for authenticated users only
 function ensureAuthenticated(req, res, next) {
