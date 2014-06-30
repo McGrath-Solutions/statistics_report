@@ -42,20 +42,16 @@ module.exports = (function() {
     return obj;
   }
 
-  User.getUserObjectById = function(userId, callback, errorCallback) {
+  User.getUserObjectById = function(userId, callback) {
     new User({uid: userId}).fetch({
       withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']
     }).then(function(model) {
       // console.log(model)
       var object = User.makeUserObject(model);
 
-      callback(object);
+      callback(null, object);
     }).catch(function(err) {
-      if (errorCallback) {
-        errorCallback(err);
-      } else {
-        console.error(err);
-      }
+      callback(err);
     })
   }
 

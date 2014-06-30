@@ -51,3 +51,4 @@ models/databaseconfig.js
 
 ## xl reports **
 *.xlsx
+reports/*

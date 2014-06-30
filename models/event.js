@@ -162,10 +162,12 @@ function makeEvent() {
    */
   Event.loadRegisteredUserInformation = function(model, callback) {
     var registrations = model.registrations;
+    var users = [];
     var length = registrations.length;
+    var loadedCount = 0;
     for (var i = 0; i < length; i++) {
       var reg = registrations[i];
-
+      Registration.loadUserObject(reg, )
     }
   }
 
@@ -175,7 +177,7 @@ function makeEvent() {
    * @param date = a date object with the desired month of the desired year;
    * @param callback = the callback to be called;
    */
-  Event.loadObjectsByMonth = function(date, callback, callbackError) {
+  Event.loadObjectsByMonth = function(date, callback) {
     var month = date.getMonth();
     var year = date.getFullYear();
 
@@ -189,7 +191,11 @@ function makeEvent() {
     console.log("Start: " + dateStart);
     console.log("End: " + dateEnd);
     // Hack-y 
-    Event.loadObjects(function(objects) {
+    Event.loadObjects(function(err, objects) {
+      if (err) {
+        console.error("Error: " + err);
+        return;
+      }
       var length = objects.length;
 
       for (var i = 0; i < length; i++) {
@@ -204,13 +210,13 @@ function makeEvent() {
       }
 
       callback(relevantObjs);
-    }, callbackError);
+    });
   }
 
   // Load an array of every single Event object in database and call callback with that array. 
   // Currently takes a callback function.
   // TODO: write as a promise
-  Event.loadObjects = function(callback, callbackError) {
+  Event.loadObjects = function(callback) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
       withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
       'sportsClub', 'users']
@@ -221,13 +227,9 @@ function makeEvent() {
         objects.push(Event.initFromDatabaseObject(models[i]));
       }
 
-      callback(objects);
+      callback(null, objects);
     }).catch(function(err) {
-      if (callbackError) {
-        callbackError(err);
-      } else {
-        console.error(err);
-      }
+      callbackError(err);
     });
   }
 

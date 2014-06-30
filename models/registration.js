@@ -81,50 +81,33 @@ function makeRegistration() {
   }
 
   /* Load the user object associated with this registration */
-  Registration.loadUserObject = function(registration, callback, errorCallback) {
+  Registration.loadUserObject = function(registration, callback) {
     if (!registration.uid) {
       throw new Error("Registration: Cannot fetch User from anonymous Registration");
     }
 
     var id = registration.uid;
-    var object = User.getUserObjectById(id, callback, errorCallback);
-
-    /*
-    new User({uid: id}).fetch().then(function onSuccess(model) {
-      var obj = User.makeUserObject(model);
-      callback(obj);
-    }).catch(function(err) {
-      if (errorCallback) {
-        errorCallback(err);
-      } else {
-        console.error(err);
-      }
-    });
-    */
+    var object = User.getUserObjectById(id, callback);
   }
 
   /* Load registration by number. This is useful if you need more information about an 
    * an event registration object such as type of registration etc.  */
-  Registration.loadRegistrationById = function(id, callback, errorCallback) {
+  Registration.loadRegistrationById = function(id, callback) {
     new RegistrationNode({registration_id: id}).fetch({
       withRelated: ['event', 'type', 'notes', 'user']
     })
     .then(function onSuccess(registration) {
       var object = Registration.initFromDatabaseObject(registration);
 
-      callback(object);
+      callback(null, object);
     }).catch(function onFailure(err) {
-      if (errorCallback) {
-        errorCallback(err);
-      } else {
-        console.error(err);
-      }
+      callback(err);
     })
   }
 
 
   /* Load objects from the database */
-  Registration.loadObjects = function(callback, errorCallback) {
+  Registration.loadObjects = function(callback) {
     // Potential bug: Loads all registrations. Potentially need a filter.
     new RegistrationNode().fetchAll({
       withRelated: ['event', 'type', 'notes', 'user']
@@ -135,13 +118,9 @@ function makeRegistration() {
         objects.push(Registration.initFromDatabaseObject(models[i]));
       }
 
-      callback(objects);
+      callback(null, objects);
     }).catch(function(err) {
-      if (errorCallback) {
-        errorCallback(err);
-      } else {
-        console.error(err);
-      }
+      callback(err);
     });
   }
 
