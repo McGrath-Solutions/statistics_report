@@ -5,7 +5,9 @@ var util = require('util');
 var xls = require('./xlsutil');
 var _ = require('lodash');
 
-var makeMonthlyProgramming = function(relevantDate, callbackInfo, callbackReport) {
+var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callbackReport) {
+  console.log(callbackInfo);
+  console.log(callbackReport);
   /* Helper Functions */
   /* Generate a counts Object conforming to the schema */
   var genCountsObject = function(title) {
@@ -187,12 +189,12 @@ var makeMonthlyProgramming = function(relevantDate, callbackInfo, callbackReport
             console.log("Registrations Processed: " + processedRegistrations + " out of " + numReg);
 
             if (processedRegistrations === numReg) {
-              callback();
+              callback(path);
             }
           });
         }
 
-      });
+      }, callbackReport);
     }
   };
 
@@ -329,12 +331,12 @@ var makeMonthlyProgramming = function(relevantDate, callbackInfo, callbackReport
           //console.log("Info: " + callbackInfo.toString());
 
           xls(xlsObject, function(err) {
-            callbackReport(err);
-          }, {fileName: "./tnabaMonthly.xlsx"});
+            callbackReport(err, path);
+          }, {fileName: path});
         }
       });
     }
-  });
+  }, callbackReport);
 }
 
 /*
@@ -345,15 +347,17 @@ var makeMonthlyProgramming = function(relevantDate, callbackInfo, callbackReport
  * @param callbackInfo = the information callback (to be called as soon as information is ready);
  * @param callbackReport = the callback to be called when the report is generated;
  */
-module.exports = function(reportType, relevantDate, callbackInfo, callbackReport) {
-  if (arguments.length === 3) {
+module.exports = function(reportType, path, relevantDate, callbackInfo,  callbackReport) {
+  if (arguments.length === 4) {
     callbackReport = callbackInfo;
     callbackInfo = undefined;
   }
 
   if (reportType == "Monthly Programming Report") {
-    makeMonthlyProgramming(relevantDate, callbackInfo, callbackReport);
+    makeMonthlyProgramming(relevantDate, path, callbackInfo, callbackReport);
+  } else if (reportType === "Monthly Membership Report") {
+    console.log("Too be implemented!");
   } else {
-    callback(new Error("Unkown Report"));
+    callbackReport(new Error("Unkown Report"));
   }
 }

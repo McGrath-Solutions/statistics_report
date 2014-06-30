@@ -175,7 +175,7 @@ function makeEvent() {
    * @param date = a date object with the desired month of the desired year;
    * @param callback = the callback to be called;
    */
-  Event.loadObjectsByMonth = function(date, callback) {
+  Event.loadObjectsByMonth = function(date, callback, callbackError) {
     var month = date.getMonth();
     var year = date.getFullYear();
 
@@ -204,13 +204,13 @@ function makeEvent() {
       }
 
       callback(relevantObjs);
-    });
+    }, callbackError);
   }
 
   // Load an array of every single Event object in database and call callback with that array. 
   // Currently takes a callback function.
   // TODO: write as a promise
-  Event.loadObjects = function(callback) {
+  Event.loadObjects = function(callback, callbackError) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
       withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
       'sportsClub', 'users']
@@ -222,6 +222,12 @@ function makeEvent() {
       }
 
       callback(objects);
+    }).catch(function(err) {
+      if (callbackError) {
+        callbackError(err);
+      } else {
+        console.error(err);
+      }
     });
   }
 

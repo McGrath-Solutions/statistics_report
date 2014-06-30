@@ -66,6 +66,8 @@ app.get('/stats', statistics.stats)
 app.get('/stats/export', statistics.reports);
 app.get('/stats/import', statistics.upload);
 app.get('/stats/users/:uid', statistics.userpage);
+app.get('/download/:reportName', statistics.getReport);
+app.post('/generate', statistics.genReport);
 
 // Authentication middleware: for authenticated users only
 function ensureAuthenticated(req, res, next) {

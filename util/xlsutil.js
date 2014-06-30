@@ -1,6 +1,6 @@
 var xls = require('msexcel-builder');
 var _ = require('lodash');
-
+var mkdirp = require('mkdirp');
 
 function makeUtil() {
   /* Helper methods */
@@ -175,8 +175,8 @@ function makeUtil() {
     var filePath = (slashIndex != -1) ? opts.fileName.substring(0, slashIndex + 1) : ".\/";
     var fileName = (slashIndex != -1) ? opts.fileName.substring(slashIndex + 1) : opts.fileName;
 
-    //console.log(filePath);
-    //console.log(fileName);
+    console.log("filepath: " + filePath);
+    console.log("filename: " + fileName);
 
     var workbook = xls.createWorkbook(filePath, fileName);
 
@@ -295,11 +295,13 @@ function makeUtil() {
       }
     });
     
-    workbook.save(function(err){
-      if (err) 
-        callback(err);
-      else
-        callback();
+    mkdirp(filePath, function() {
+      workbook.save(function(err){
+        if (err) 
+          callback(err, opts.fileName);
+        else
+          callback(null, opts.fileName);
+      });
     });
   }
 

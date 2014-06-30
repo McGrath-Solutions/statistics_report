@@ -20,13 +20,17 @@ block content
       br
       button.btn-primary.btn-lg() Download Report
     h4 Select a report type to generate below. 
-    h4(id="selected") No report type selected
+    h4(id="selected") No report type selected.
     div.btn-group-vertical
       button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
       button.btn.btn-default(type="button", id="event") Tnaba event monthly report
 
     br
     button.btn.btn-primary.btn-lg(id="download", class="notReady") Download Report
+    div(id="loading")
+      p 
+        strong Please wait
+      img(src="/img/ajax-loader.gif")
 
 block pagejavascript
   script(src="/js/export.js")
