@@ -1,5 +1,5 @@
 var User = require('../models/user');
-
+/*
 new User({uid: 1}).fetch({
   withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']
 }).then(function(model) {
@@ -9,7 +9,35 @@ new User({uid: 1}).fetch({
   console.log(model.related('gender').attributes.field_gender_value);
   console.log(model.related('isVeteran').attributes.field_veteran_status_value);
 });
+*/
 
-User.getUserObjectById(19, function(object) {
+User.getUserObjectById(1, function(err, object) {
+  if (err) {
+    console.error("Error: " + err);
+  }
   console.log(object);
 });
+
+User.loadObjects(function(err, objects) {
+  if (err) {
+    console.error("Error: " + err);
+  }
+  console.log(objects);
+});
+
+User.loadUsersByCreatedMonth(new Date(2014, 4, 1), function(err, objects) {
+  if (err) {
+    console.error("Error: " + err);
+  }
+  console.log("By Date: ");
+  console.log(objects);
+});
+
+User.loadUsersCreatedBefore(new Date(2014, 4, 8), function(err, objects) {
+  if (err) {
+    console.error("Error: " + err);
+  }
+
+  console.log("Before May 8th: ");
+  console.log(objects);
+})

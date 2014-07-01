@@ -5,6 +5,11 @@ var util = require('util');
 var xls = require('./xlsutil');
 var _ = require('lodash');
 
+var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackReport) {
+  console.log(callbackInfo);
+  console.log(callbackReport);
+}
+
 var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callbackReport) {
   console.log(callbackInfo);
   console.log(callbackReport);
@@ -363,7 +368,7 @@ module.exports = function(reportType, path, relevantDate, callbackInfo, callback
   if (reportType == "Monthly Programming Report") {
     makeMonthlyProgramming(relevantDate, path, callbackInfo, callbackReport);
   } else if (reportType === "Monthly Membership Report") {
-    console.log("Too be implemented!");
+    makeMonthlyMembership(relevantDate, path, callbackInfo, callbackReport);
   } else {
     callbackReport(new Error("Unkown Report"));
   }

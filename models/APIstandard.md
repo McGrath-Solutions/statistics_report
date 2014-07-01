@@ -2,7 +2,7 @@ Database Entity
 =======================
 - Standard Methods
   * initFromDatabaseObject
-  * load[Entity]s
+  * loadObjects
     > Fetch all objects of type entity in the database
   * load[Entity]ById
     > Fetch the object associated with an Id

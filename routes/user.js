@@ -24,7 +24,7 @@ exports.checkLogin = function(req, res, next) {
       }
 
       req.flash('success', 'Welcome!');
-      return res.redirect('/');
+      return res.redirect('/stats');
     });
   })(req, res, next); 
 };

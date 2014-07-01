@@ -57,16 +57,20 @@ app.get('/login', user.login);
 app.post('/login', user.checkLogin);
 app.get('/logout', user.logout)
 
+// The user stats page does not require authentication
+app.get('/stats/users/:uid', statistics.userpage);
+
 // IMPORTANT: for development, removing authentication insurance.
 // This line should be readded during production
 // PRODUCTION LINE
-// app.get('/stats', user.ensureAuthenticated, statistics.stats)
+app.get('/stats', user.ensureAuthenticated, statistics.stats)
 // DEVELOPMENT LINE
-app.get('/stats', statistics.stats)
-app.get('/stats/export', statistics.reports);
-app.get('/stats/import', statistics.upload);
-app.get('/stats/users/:uid', statistics.userpage);
-app.get('/download/:reportName', statistics.getReport);
+// app.get('/stats', statistics.stats)
+
+// The following lines require authentication
+app.get('/stats/export', user.ensureAuthenticated, statistics.reports);
+app.get('/stats/import', user.ensureAuthenticated, statistics.upload);
+app.get('/download/:reportName', user.ensureAuthenticated, statistics.getReport);
 app.post('/generate', statistics.genReport);
 
 // Authentication middleware: for authenticated users only
