@@ -12,7 +12,7 @@ module.exports = (function() {
     tableName: 'users',
     idAttribute: 'uid',
     roles: function() {
-      return this.hasOne(UserRole, 'uid');
+      return this.hasMany(Role, 'uid').through(UserRole, "rid");
     },
     dateOfBirth: function() {
       return this.hasOne(UserDateOfBirth, 'entity_id');
@@ -43,7 +43,16 @@ module.exports = (function() {
     obj.created = new Date(model.attributes.created * 1000);
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
-    obj.roles = model.related('roles').attributes.rid;
+
+
+    console.log(model.related('roles').models);
+    var roleArray = [];
+    var roleModels = model.related('roles').models;
+    for (var i = 0; i < roleModels.length; i++) {
+      roleArray[roleArray.length] = roleModels[i].attributes.name;
+    }
+
+    obj.roles = roleArray;
     obj.dob = model.related('dateOfBirth').attributes.field_date_of_birth_value;
     obj.gender = model.related('gender').attributes.field_gender_value;
 
@@ -142,7 +151,8 @@ module.exports = (function() {
   }
 
   var UserRole = Bookshelf.Model.extend({
-    tableName: 'users_roles'
+    tableName: 'users_roles',
+    idAttribute: 'rid'
   });
 
   var UserDateOfBirth = Bookshelf.Model.extend({
@@ -163,6 +173,10 @@ module.exports = (function() {
 
   var UserLastName = Bookshelf.Model.extend({
     tableName: 'field_data_field_last_name'
+  });
+
+  var Role = Bookshelf.Model.extend({
+    tableName: 'role'
   });
 
   return User;
