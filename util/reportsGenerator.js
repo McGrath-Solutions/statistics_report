@@ -80,11 +80,7 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
 
   /* Process Event object */
   var processEventObjectData = function(object, callback) {
-    /*
-    console.log("Now processing another event!");
-    console.log("This event is: ");
-    console.log(util.inspect(object));
-    */
+    
 
     var sport = getSportNameInContext(object.sport);
     var club = getClubNameInContext(object.club);
@@ -136,7 +132,10 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
       */
      
       regId = reg.id;
-      Registration.loadRegistrationById(regId, function(registration) {
+      Registration.loadRegistrationById(regId, function(err, registration) {
+        if (err) {
+          console.error(err);
+        }
 
         // Debugging code
         /*
@@ -164,7 +163,10 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
           }
         } else {
           // Load the user object and check the age of the user
-          Registration.loadUserObject(registration, function(user) {
+          Registration.loadUserObject(registration, function(err, user) {
+            if (err) {
+              console.log(err);
+            }
 
             // Debugging code
             /*
@@ -288,7 +290,12 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
 
   // Populate counts for individual sports
   // "Welcome to Callback Hell"
-  Event.loadObjectsByMonth(relevantDate, function(objects) {
+  Event.loadObjectsByMonth(relevantDate, function(err, objects) {
+    if (err) {
+      console.error("Error: " + err);
+      return;
+    }
+
     var length = objects.length;
     var processedEvents = 0;
 
@@ -347,7 +354,7 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
  * @param callbackInfo = the information callback (to be called as soon as information is ready);
  * @param callbackReport = the callback to be called when the report is generated;
  */
-module.exports = function(reportType, path, relevantDate, callbackInfo,  callbackReport) {
+module.exports = function(reportType, path, relevantDate, callbackInfo, callbackReport) {
   if (arguments.length === 4) {
     callbackReport = callbackInfo;
     callbackInfo = undefined;

@@ -83,7 +83,7 @@ function makeRegistration() {
   /* Load the user object associated with this registration */
   Registration.loadUserObject = function(registration, callback) {
     if (!registration.uid) {
-      throw new Error("Registration: Cannot fetch User from anonymous Registration");
+      callback(Error("Registration: Cannot fetch User from anonymous Registration"));
     }
 
     var id = registration.uid;

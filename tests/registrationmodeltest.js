@@ -1,6 +1,6 @@
 var Registration = require('../models/registration');
 
-var printstuff = function(models) {
+var printstuff = function(err, models) {
   for (var i = 0; i < models.length; i++) {
     //console.log(typeof model);
     console.log(models[i]);

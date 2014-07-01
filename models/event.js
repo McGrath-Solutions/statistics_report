@@ -4,6 +4,7 @@
 // Imports
 var dbinfo = require('./databaseconfig');
 var knex = require('knex')(dbinfo);
+var async = require('async');
 
 var bookshelf = require('bookshelf')(knex);
 
@@ -163,12 +164,15 @@ function makeEvent() {
   Event.loadRegisteredUserInformation = function(model, callback) {
     var registrations = model.registrations;
     var users = [];
-    var length = registrations.length;
-    var loadedCount = 0;
-    for (var i = 0; i < length; i++) {
-      var reg = registrations[i];
-      Registration.loadUserObject(reg, )
-    }
+    async.each(registrations, Registration.loadUserObject, function(err, object) {
+      if (err) {
+        console.error("An object failed to process: " + err);
+      } else {
+        users[users.length] = object;
+      }
+    });
+
+    return users;
   }
 
   /* 
@@ -196,6 +200,7 @@ function makeEvent() {
         console.error("Error: " + err);
         return;
       }
+
       var length = objects.length;
 
       for (var i = 0; i < length; i++) {
@@ -208,8 +213,7 @@ function makeEvent() {
           relevantObjs.push(object);
         }
       }
-
-      callback(relevantObjs);
+      callback(null, relevantObjs);
     });
   }
 
@@ -229,7 +233,7 @@ function makeEvent() {
 
       callback(null, objects);
     }).catch(function(err) {
-      callbackError(err);
+      callback(err);
     });
   }
 
