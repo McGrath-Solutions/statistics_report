@@ -21,7 +21,7 @@ module.exports = (function() {
     }
   });
 
-  User.makeUserObject = function(model) {
+  User.initFromDatabaseObject = function(model) {
     if (!model) {
       return {};
     }
@@ -47,7 +47,7 @@ module.exports = (function() {
       withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']
     }).then(function(model) {
       // console.log(model)
-      var object = User.makeUserObject(model);
+      var object = User.initFromDatabaseObject(model);
 
       callback(null, object);
     }).catch(function(err) {
