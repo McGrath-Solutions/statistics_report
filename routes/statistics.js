@@ -44,9 +44,16 @@ exports.genReport = function(req, res) {
       if (!reportType) {
         res.send("Unknown Type");
       }
-      var today = new Date();
+      // var today = new Date();
+      /*
       var fileName = 'monthly-' + type + "-gen" + today.getFullYear() + (today.getMonth() + 1) + 
         today.getDate() + "-for" + date.getFullYear() + (date.getMonth() + 1) + ".xlsx";
+      */
+     
+      // Alternative filename saves space and does not require a tricky unlink, allowing multiple user
+      // downloads at once
+      var fileName = 'monthly-' + type + "-for" + date.getFullYear() + (date.getMonth() + 1) + ".xlsx";
+
       var filePath = './reports/' + uid + '/' + fileName;
       genReport(reportType, filePath, date, function(err, path) {
         if (err) {
@@ -75,9 +82,12 @@ exports.getReport = function(req, res) {
       if (err) {
         console.error("Error occured sending: " + err);
       } else {
+        console.log("File sent successfully");
+        /* Don't unlink for now
         fs.unlink(fullPathName, function() {
           console.log("File successfully unlinked");
         })
+        */
       }
     });
   }

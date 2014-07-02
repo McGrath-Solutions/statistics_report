@@ -511,6 +511,7 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
     var length = objects.length;
     var processedEvents = 0;
 
+    // If there are no objects, automatically complete the task
     if (length === 0) {
       complete();
     }
