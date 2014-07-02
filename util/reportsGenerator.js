@@ -210,7 +210,7 @@ var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackR
     OverallCount.pushRow(counts);
 
     // Write the excel file
-    var monthString = relevantDate.getMonth() + "/" + relevantDate.getFullYear();
+    var monthString = (relevantDate.getMonth() + 1) + "/" + relevantDate.getFullYear();
     var xlsObject = {
       sheet1: {
         name: "TNABA Monthly Membership Report",
@@ -470,8 +470,50 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
       return;
     }
 
+    var complete = function() {
+      /* console.log("Final result to be written: ");
+      console.log(util.inspect(counts)); */
+
+      if (callbackInfo) {
+        callbackInfo(counts);
+      }
+
+      // Generate the report and call the callback
+      // Extract the data
+      buildTables();
+      /*
+      console.log("Tables: ");
+      console.log(util.inspect(TotalsTable));
+      console.log(util.inspect(NashvilleTable));
+      console.log(util.inspect(AtLargeTable));
+      console.log(util.inspect(MemphisTable));
+      */
+      var monthString = (relevantDate.getMonth() + 1) + "/" + relevantDate.getFullYear();
+      var xlsObject = {
+        sheet1: {
+          name: "TNABA Monthly Programming Report",
+          information: {
+            Generated: new Date(),
+            Month: monthString
+          },
+          data: [TotalsTable, NashvilleTable, AtLargeTable, MemphisTable]
+        }
+      }
+
+      //console.log("Report: " + callbackReport.toString());
+      //console.log("Info: " + callbackInfo.toString());
+
+      xls(xlsObject, function(err) {
+        callbackReport(err, path);
+      }, {fileName: path});
+    }
+
     var length = objects.length;
     var processedEvents = 0;
+
+    if (length === 0) {
+      complete();
+    }
 
     for (var i = 0; i < length; i++) {
       processEventObjectData(objects[i], function() {
@@ -479,41 +521,7 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
         console.log("Events processed: " + processedEvents + " out of " + length);
 
         if (processedEvents === length) {
-          /* console.log("Final result to be written: ");
-          console.log(util.inspect(counts)); */
-
-          if (callbackInfo) {
-            callbackInfo(counts);
-          }
-
-          // Generate the report and call the callback
-          // Extract the data
-          buildTables();
-          /*
-          console.log("Tables: ");
-          console.log(util.inspect(TotalsTable));
-          console.log(util.inspect(NashvilleTable));
-          console.log(util.inspect(AtLargeTable));
-          console.log(util.inspect(MemphisTable));
-          */
-          var monthString = relevantDate.getMonth() + "/" + relevantDate.getFullYear();
-          var xlsObject = {
-            sheet1: {
-              name: "TNABA Monthly Programming Report",
-              information: {
-                Generated: new Date(),
-                Month: monthString
-              },
-              data: [TotalsTable, NashvilleTable, AtLargeTable, MemphisTable]
-            }
-          }
-
-          //console.log("Report: " + callbackReport.toString());
-          //console.log("Info: " + callbackInfo.toString());
-
-          xls(xlsObject, function(err) {
-            callbackReport(err, path);
-          }, {fileName: path});
+          complete();
         }
       });
     }

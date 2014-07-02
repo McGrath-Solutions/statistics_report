@@ -5,6 +5,16 @@
   margin: 0 auto;
 }
 
+/* Hide view and display until implementation 
+ * is complete */
+#view {
+  display: none;
+}
+
+#edit {
+  display: none;
+}
+
 .statsbasicmenu .btn {
 
 }

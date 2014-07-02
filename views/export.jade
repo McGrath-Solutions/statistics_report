@@ -19,7 +19,23 @@ block content
             a(href="#monthly", id="monthly") Tnaba event monthly report
       br
       button.btn-primary.btn-lg() Download Report
-    h4 Select a report type to generate below. 
+    h4 Select a month
+    select.form-control(id="month")
+      option(value="0") January
+      option(value="1") February
+      option(value="2") March
+      option(value="3") April
+      option(value="4") May
+      option(value="5") June
+      option(value="6") July
+      option(value="7") August
+      option(value="8") September
+      option(value="9") October
+      option(value="10") November
+      option(value="11") December
+    p#year
+
+    h4 Select a report type to generate. 
     h4(id="selected") No report type selected.
     div.btn-group-vertical
       button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report

@@ -35,6 +35,7 @@ exports.genReport = function(req, res) {
     res.send({needLogin: true});
   } else {
     var type = req.body.type;
+    var date = new Date(req.body.dateFor);
     var uid = req.user.attributes.uid;
     if (!type) {
       res.send("Unknown type");
@@ -44,10 +45,10 @@ exports.genReport = function(req, res) {
         res.send("Unknown Type");
       }
       var today = new Date();
-      var fileName = 'monthly-' + type + today.getFullYear() + (today.getMonth() + 1) + 
-        today.getDate() + ".xlsx";
+      var fileName = 'monthly-' + type + "-gen" + today.getFullYear() + (today.getMonth() + 1) + 
+        today.getDate() + "-for" + date.getFullYear() + (date.getMonth() + 1) + ".xlsx";
       var filePath = './reports/' + uid + '/' + fileName;
-      genReport(reportType, filePath, today, function(err, path) {
+      genReport(reportType, filePath, date, function(err, path) {
         if (err) {
           res.send("Error: " + err);
         } else {
@@ -67,9 +68,18 @@ exports.getReport = function(req, res) {
   if (!user) {
     res.send(403, "Not authorized");
   } else {
+    // Send the file, then unlink it
     var uid = user.attributes.uid;
     var fullPathName = "./reports/" + uid + "/" + reportName;
-    res.sendfile(fullPathName);
+    res.sendfile(fullPathName, function unlink(err) {
+      if (err) {
+        console.error("Error occured sending: " + err);
+      } else {
+        fs.unlink(fullPathName, function() {
+          console.log("File successfully unlinked");
+        })
+      }
+    });
   }
 }
   

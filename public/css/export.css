@@ -7,6 +7,14 @@
   display: none;
 }
 
-#selected {
-  color: blue;
+#month {
+  position: relative;
+  max-width: 150px;
+  margin: 0 auto;
+  display: inline;
+}
+
+#year {
+  display: inline;
+  font-weight: bold;
 }
