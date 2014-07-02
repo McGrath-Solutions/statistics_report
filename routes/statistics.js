@@ -43,7 +43,7 @@ exports.genReport = function(req, res) {
         res.send("Unknown Type");
       }
       var today = new Date();
-      var fileName = 'monthly-' + today.getFullYear() + (today.getMonth() + 1) + 
+      var fileName = 'monthly-' + type + today.getFullYear() + (today.getMonth() + 1) + 
         today.getDate() + ".xlsx";
       var filePath = './reports/' + uid + '/' + fileName;
       genReport(reportType, filePath, today, function(err, path) {

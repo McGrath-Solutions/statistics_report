@@ -78,21 +78,20 @@ var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackR
   var ageBreakdownLabels = ["Junior", "Youth", "Adult"];
   var ageBreakdownSchema = ["number", "number", "number"];
 
-  var statusBreakdownSchema = ["Pending", "Active", "InActive", "Suspended"];
-  var statusBreakdownLabels = ["number", "number", "number", "number"];
+  var statusBreakdownLabels = ["Pending", "Active", "InActive", "Suspended"];
+  var statusBreakdownSchema = ["number", "number", "number", "number"];
 
   // Table definitions
   var NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
   var OverallCount = new xls.Table("Overall Members", overallSchema, overallLabels);
-  var GenderBreakdown = new xls.Table("Gender Breakdown", genderBrekdownSchema, genderBreakdownLabels);
+  var GenderBreakdown = new xls.Table("Gender Breakdown", genderBreakdownSchema, genderBreakdownLabels);
   var AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
-  var StatusBreakdown = new xls.Table("Member Status Breadkwon", statusBreakdownSchema, statusBreakdownLabels);
+  var StatusBreakdown = new xls.Table("Member Status Breakdown", statusBreakdownSchema, statusBreakdownLabels);
 
   async.parallel([
     // Load user information
     function fetchMonthlyInformation(callback) {
       // Fetch all users in the specified month and populate information
-      var statusCounts = [0, 0, 0, 0];
       
       User.loadUsersByCreatedMonth(relevantDate, function(err, objects) {
         var numUsers = objects.length;
@@ -102,18 +101,120 @@ var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackR
           var lastName = user.lastName || "unknown";
           var firstName = user.firstName || "unknown";
           var email = user.email || "unknown";
+          var phone = user.phone || "unknown";
+          var roles = user.roles.join() || "unknown";
+
+          var newRow = [id, lastName, firstName, email, phone, roles];
+          NewMemberSummary.pushRow(newRow);
         }
+
+        callback(err, numUsers);
       });
     },
     function fetchOverallInformation(callback) {
       var genderCounts = [0, 0]; // Counts for males and females
       var ageCounts = [0, 0, 0]; // Counts for Junior, Youth and Adult
+      var statusCounts = [0, 0, 0, 0]; // Counts of user status
+
+      User.loadObjects(function(err, objects) {
+        if (err) {
+          console.log(err);
+        }
+        console.log("Objects: ");
+        console.log(objects);
+
+        var numUsers = objects.length;
+        for (var i = 0; i < numUsers; i++) {
+          var user = objects[i];
+          console.log(user);
+
+          var gender = user.gender || "Unknown";
+          if (gender === "Male") {
+            genderCounts[0]++;
+          } else if (gender === "Female") {
+            genderCounts[1]++;
+          }
+
+          var birthDate = user.dob;
+          if (birthDate) {
+            var ageGroup = getAgeGroup(birthDate);
+            if (ageGroup === "juniors") {
+              ageCounts[0]++;
+            } else if (ageGroup === "youth") {
+              ageCounts[1]++;
+            } else if (ageGroup === "adult") {
+              ageCounts[2]++;
+            }
+          }
+
+          // Possible Status: "Pending", "Active", "InActive", "Suspended"
+          // Check if the user is pending
+          if (user.pending) {
+            statusCounts[0]++;
+          }
+
+          // Check if the user is active
+          if (user.active) {
+            statusCounts[1]++;
+          } else {
+            statusCounts[2]++;
+          }
+
+          // Check if the user is suspended
+          if (user.suspended) {
+            statusCounts[4]++;
+          }
+        }
+
+        var sumAllIterator = function(accumulator, value) {
+          return accumulator + value;
+        }
+
+        GenderBreakdown.pushRow(genderCounts);
+        var genderSum = genderCounts.reduce(sumAllIterator); // get the sum of the elements
+        var genderFrac = genderCounts.map(function(el) {
+          return el / genderSum;
+        });
+        //console.log(genderFrac);
+        GenderBreakdown.pushRow(genderFrac);
+
+        AgeBreakdown.pushRow(ageCounts);
+        var ageSum = ageCounts.reduce(sumAllIterator);
+        var ageFrac = ageCounts.map(function(el) {
+          return el / ageSum;
+        });
+        //console.log(ageFrac);
+        AgeBreakdown.pushRow(ageFrac);
+
+        StatusBreakdown.pushRow(statusCounts);
+
+        callback(err, numUsers);
+      });
     }
     // load counts information
   ], function(err, counts) {
     // Counts will contain an array with the first entry being new users, the second entry being total users
     OverallCount.pushRow(counts);
 
+    // Write the excel file
+    var monthString = relevantDate.getMonth() + "/" + relevantDate.getFullYear();
+    var xlsObject = {
+      sheet1: {
+        name: "TNABA Monthly Membership Report",
+        information: {
+          Generated: new Date(),
+          Month: monthString
+        },
+        data: [OverallCount, NewMemberSummary, GenderBreakdown, AgeBreakdown, StatusBreakdown]
+      }
+    }
+
+    //console.log("Report: " + callbackReport.toString());
+    //console.log("Info: " + callbackInfo.toString());
+
+    xls(xlsObject, function(err) {
+      callbackReport(err, path);
+    }, {fileName: path});
   });
 }
 

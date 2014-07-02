@@ -34,6 +34,7 @@ module.exports = (function() {
     }
   });
 
+  // Very Bulky
   User.initFromDatabaseObject = function(model) {
     if (!model) {
       return {};
@@ -43,16 +44,42 @@ module.exports = (function() {
     obj.id = model.attributes.uid;
     obj.email = model.attributes.mail;
     obj.username = model.attributes.name;
+
+    // Test if the user is suspended
+    obj.suspended = (!model.attributes.status) ? true : false;
+
+    // Test if the user is active
+    obj.active = (function isActive(lastAccessSeconds) {
+      var today = new Date();
+      var thisYear = today.getFullYear();
+      var thisMonth = today.getMonth();
+      var thisDay = today.getDate();
+
+      var lastMonth = new Date(thisYear, thisMonth - 1, thisDay);
+      // console.log(lastMonth);
+      var lastMonthAccessSeconds = lastMonth.getTime() / 1000;
+
+      if (lastAccessSeconds >= lastMonthAccessSeconds) {
+        return true;
+      }
+
+      return false;
+    })(model.attributes.access);
+
     obj.created = new Date(model.attributes.created * 1000);
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
     obj.phone = model.related('phone').attributes.field_phone_value;
+    obj.pending = false;
 
     // console.log(model.related('roles').models);
     var roleArray = [];
     var roleModels = model.related('roles').models;
     for (var i = 0; i < roleModels.length; i++) {
-      roleArray[roleArray.length] = roleModels[i].attributes.name;
+      var roleName = roleModels[i].attributes.name;
+      roleArray[roleArray.length] = roleName;
+
+      if (roleName.indexOf("pending") > -1) obj.pending = true;
     }
 
     obj.roles = roleArray;

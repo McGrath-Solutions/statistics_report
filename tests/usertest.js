@@ -11,20 +11,25 @@ new User({uid: 1}).fetch({
 });
 */
 
+/*
 User.getUserObjectById(1, function(err, object) {
   if (err) {
     console.error("Error: " + err);
   }
   console.log(object);
 });
+*/
 
 User.loadObjects(function(err, objects) {
+  console.log("Fetched Users!");
+  console.log("DERP DERP DERP");
   if (err) {
     console.error("Error: " + err);
   }
   console.log(objects);
 });
 
+/*
 User.loadUsersByCreatedMonth(new Date(2014, 4, 1), function(err, objects) {
   if (err) {
     console.error("Error: " + err);
@@ -41,3 +46,4 @@ User.loadUsersCreatedBefore(new Date(2014, 4, 8), function(err, objects) {
   console.log("Before May 8th: ");
   console.log(objects);
 })
+*/
