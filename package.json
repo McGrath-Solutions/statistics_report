@@ -22,6 +22,6 @@
     "mkdirp": "0.x",
     "lodash": "2.x",
     "async": "0.x",
-    "js-xlsx": "0.x"
+    "node-xlsx": "0.x"
   }
 }
