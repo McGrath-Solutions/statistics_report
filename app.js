@@ -73,12 +73,6 @@ app.get('/stats/import', user.ensureAuthenticated, statistics.upload);
 app.get('/download/:reportName', user.ensureAuthenticated, statistics.getReport);
 app.post('/generate', statistics.genReport);
 
-// Authentication middleware: for authenticated users only
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login');
-}
-
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

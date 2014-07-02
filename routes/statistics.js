@@ -24,6 +24,7 @@ exports.upload = function(req, res) {
 
 // Page to export reports as csv files
 exports.reports = function(req, res) {
+  
   res.render('export', {user: req.user});
 }
 

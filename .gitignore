@@ -52,3 +52,5 @@ models/databaseconfig.js
 ## xl reports **
 *.xlsx
 reports/*
+tests/reports/*
+tests/reportsFolder/*

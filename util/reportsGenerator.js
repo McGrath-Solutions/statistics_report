@@ -51,12 +51,21 @@ var getAgeGroup = function(dateOfBirth) {
       age--;
   }
 
+  console.log("Born: ");
+  console.log(dateOfBirth);
+
+  console.log("Aged: ");
+  console.log(age);
+
   /* Define Juniors as 1-10, Youth as 11-19, Adults as 20 and up */
   if (age >= 20) {
+    console.log("Is an adult");
     return "adults";
   } else if (age >= 11) {
+    console.log("Is a youth");
     return "youth";
   } else {
+    console.log("Is a junior");
     return "juniors";
   }
 }
@@ -138,11 +147,15 @@ var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackR
           var birthDate = user.dob;
           if (birthDate) {
             var ageGroup = getAgeGroup(birthDate);
+            console.log("Got age group: " + ageGroup);
             if (ageGroup === "juniors") {
+              //console.log("Inc junior");
               ageCounts[0]++;
             } else if (ageGroup === "youth") {
+              //console.log("Inc Youth");
               ageCounts[1]++;
-            } else if (ageGroup === "adult") {
+            } else if (ageGroup === "adults") {
+              //console.log("Inc Adult");
               ageCounts[2]++;
             }
           }
