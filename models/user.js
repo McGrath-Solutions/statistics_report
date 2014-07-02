@@ -6,7 +6,7 @@ var Bookshelf = require('bookshelf')(knex);
 module.exports = (function() {
 
   var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
-    'firstName', 'lastName']
+    'firstName', 'lastName', 'phone'];
 
   var User = Bookshelf.Model.extend({
     tableName: 'users',
@@ -28,6 +28,9 @@ module.exports = (function() {
     },
     lastName: function() {
       return this.hasOne(UserLastName, 'entity_id');
+    }, 
+    phone: function() {
+      return this.hasOne(UserPhone, 'entity_id');
     }
   });
 
@@ -43,9 +46,9 @@ module.exports = (function() {
     obj.created = new Date(model.attributes.created * 1000);
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
+    obj.phone = model.related('phone').attributes.field_phone_value;
 
-
-    console.log(model.related('roles').models);
+    // console.log(model.related('roles').models);
     var roleArray = [];
     var roleModels = model.related('roles').models;
     for (var i = 0; i < roleModels.length; i++) {
@@ -174,6 +177,14 @@ module.exports = (function() {
   var UserLastName = Bookshelf.Model.extend({
     tableName: 'field_data_field_last_name'
   });
+
+  var UserPhone = Bookshelf.Model.extend({
+    tableName: 'field_data_field_phone',
+    constructor: function() {
+      Bookshelf.Model.apply(this, arguments);
+      this.query('where', 'entity_type', '=', 'user');
+    }
+  })
 
   var Role = Bookshelf.Model.extend({
     tableName: 'role'

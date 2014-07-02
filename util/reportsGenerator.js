@@ -3,13 +3,122 @@ var Event = require('../models/event');
 var Registration = require('../models/registration');
 var util = require('util');
 var xls = require('./xlsutil');
+var async = require('async');
 var _ = require('lodash');
+
+/* Helper methods */
+/* Get the sport in the context of this report associated with the event sport stored in database */
+var getSportNameInContext = function(dbName) {
+  if (dbName === "Goalball Tournament") {
+    return 'Goalball';
+  } else if (dbName === 'Cycling') {
+    return 'Cycling';
+  } else if (dbName === 'Bowling') {
+    return 'Bowling';
+  } else if (dbName === 'Achilles') {
+    return 'Run\/Walk';
+  } else if (dbName === 'Goalball') {
+    return 'Goalball';
+  } else {
+    return null;
+  }
+};
+
+/* Get the club name of the sport in context of this report */
+var getClubNameInContext = function(dbClubName) {
+  if (dbClubName === "At-Large") {
+    return "atLarge";
+  } else if (dbClubName === "Memphis") {
+    return "memphis";
+  } else if (dbClubName === "Nashville") {
+    return "nashville";
+  } else if (!dbClubName) {
+    console.error("Club name is not defined, defaulting to atLarge");
+    return "atLarge";
+  }
+};
+
+/* Get the age group associated with a user with the given dateOfBirth.
+ * @param dateOfBirth = the date of birth of the user;                     */
+var getAgeGroup = function(dateOfBirth) {
+  if (!dateOfBirth) {
+    throw new Error("getAgeGroup: Undefined Date of Birth");
+  }
+  var today = new Date();
+  var age = today.getFullYear() - dateOfBirth.getFullYear();
+  var m = today.getMonth() - dateOfBirth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
+      age--;
+  }
+
+  /* Define Juniors as 1-10, Youth as 11-19, Adults as 20 and up */
+  if (age >= 20) {
+    return "adults";
+  } else if (age >= 11) {
+    return "youth";
+  } else {
+    return "juniors";
+  }
+}
+
 
 var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackReport) {
   console.log(callbackInfo);
   console.log(callbackReport);
+
+  var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
+  var newMemberSchema = ["number", "string", "string", "string", "string", "string"]
+
+  var overallLabels = ["New Members", "Total Members"];
+  var overallSchema = ["number", "number"];
+
+  var genderBreakdownLabels = ["Male", "Female"];
+  var genderBreakdownSchema = ["number", "number"];
+
+  var ageBreakdownLabels = ["Junior", "Youth", "Adult"];
+  var ageBreakdownSchema = ["number", "number", "number"];
+
+  var statusBreakdownSchema = ["Pending", "Active", "InActive", "Suspended"];
+  var statusBreakdownLabels = ["number", "number", "number", "number"];
+
+  // Table definitions
+  var NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
+  var OverallCount = new xls.Table("Overall Members", overallSchema, overallLabels);
+  var GenderBreakdown = new xls.Table("Gender Breakdown", genderBrekdownSchema, genderBreakdownLabels);
+  var AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
+  var StatusBreakdown = new xls.Table("Member Status Breadkwon", statusBreakdownSchema, statusBreakdownLabels);
+
+  async.parallel([
+    // Load user information
+    function fetchMonthlyInformation(callback) {
+      // Fetch all users in the specified month and populate information
+      var statusCounts = [0, 0, 0, 0];
+      
+      User.loadUsersByCreatedMonth(relevantDate, function(err, objects) {
+        var numUsers = objects.length;
+        for (var i = 0; i < numUsers; i++) {
+          var user = objects[i];
+          var id = user.id || 0;
+          var lastName = user.lastName || "unknown";
+          var firstName = user.firstName || "unknown";
+          var email = user.email || "unknown";
+        }
+      });
+    },
+    function fetchOverallInformation(callback) {
+      var genderCounts = [0, 0]; // Counts for males and females
+      var ageCounts = [0, 0, 0]; // Counts for Junior, Youth and Adult
+    }
+    // load counts information
+  ], function(err, counts) {
+    // Counts will contain an array with the first entry being new users, the second entry being total users
+    OverallCount.pushRow(counts);
+
+  });
 }
 
+/* Make the monthly programming for the month defined in relevant date 
+ * Needs a rewrite to better conform to asynchronous design patterns, use async library    */
 var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callbackReport) {
   console.log(callbackInfo);
   console.log(callbackReport);
@@ -22,66 +131,12 @@ var makeMonthlyProgramming = function(relevantDate, path, callbackInfo, callback
     return obj;
   };
 
-  /* Get the sport in the context of this report associated with the event sport stored in database */
-  var getSportNameInContext = function(dbName) {
-    if (dbName === "Goalball Tournament") {
-      return 'Goalball';
-    } else if (dbName === 'Cycling') {
-      return 'Cycling';
-    } else if (dbName === 'Bowling') {
-      return 'Bowling';
-    } else if (dbName === 'Achilles') {
-      return 'Run\/Walk';
-    } else if (dbName === 'Goalball') {
-      return 'Goalball';
-    } else {
-      return null;
-    }
-  };
-
-  /* Get the club name of the sport in context of this report */
-  var getClubNameInContext = function(dbClubName) {
-    if (dbClubName === "At-Large") {
-      return "atLarge";
-    } else if (dbClubName === "Memphis") {
-      return "memphis";
-    } else if (dbClubName === "Nashville") {
-      return "nashville";
-    } else if (!dbClubName) {
-      console.error("Club name is not defined, defaulting to atLarge");
-      return "atLarge";
-    }
-  };
-
   /* Get the duration of the event 
    * Currently the number of hours is simply start date - end date */
   var getDuration = function(startDate, endDate) {
     var milliseconds = endDate - startDate;
     return (((milliseconds) / 1000) / 60) / 60; // the number of hours between start and end
   };
-
-  /* Get the age group associated with a user with the given dateOfBirth.
-   * @param dateOfBirth = the date of birth of the user;                     */
-  var getAgeGroup = function(dateOfBirth) {
-    if (!dateOfBirth) {
-      throw new Error("getAgeGroup: Undefined Date of Birth");
-    }
-    var today = new Date();
-    var age = today.getFullYear() - dateOfBirth.getFullYear();
-    var m = today.getMonth() - dateOfBirth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
-        age--;
-    }
-
-    /* Define Juniors as 1-10, Youth as 11-19, Adults as 20 and up */
-    if (age >= 20) {
-      return "adults";
-    } else if (age >= 11) {
-      return "youth";
-    } else {
-      return "juniors";
-    }
-  }
 
   /* Process Event object */
   var processEventObjectData = function(object, callback) {
