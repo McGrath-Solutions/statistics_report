@@ -96,11 +96,11 @@ function makeUtil() {
         if (!_.isString(row[i])) {
           throw new Error("Table: incorrect entry type at index " + i);
         }
-      } else if (type == "date") {
+      } else if (type === "date") {
         if (!_.isDate(row[i])) {
           throw new Error("Table: incorrect entry type at index " + i);
         }
-      } else if (type == "boolean") {
+      } else if (type === "boolean") {
         if (!_.isBoolean(row[i])) {
           throw new Error("Table: incorrect entry type at index " + i);
         }
