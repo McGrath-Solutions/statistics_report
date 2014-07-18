@@ -63,12 +63,276 @@ var getAgeGroup = function(dateOfBirth) {
   }
 }
 
-function getMonthlyProgramming(relevantDate, callback) {
+function getMonthlyProgramming(relevantDate, done) {
+  /* Helper functions */
+  var genCountsObject = function(title) {
+    var obj = {name: title, activities: 0, hours: 0, juniors: 0, youth: 0, adults: 0, veterans: 0, volunteers: 0,
+               volunteerHours: 0};
+
+    return obj;
+  };
+
+  var getDuration = function(startDate, endDate) {
+    var milliseconds = endDate - startDate;
+    return (((milliseconds) / 1000) / 60) / 60; // the number of hours between start and end
+  };
+
+  // Build the tables from the count object
+  var buildTables = function() {
+
+    // Build the totals table
+    _(counts.totals).forEach(function(totals, club) {
+      /*
+      console.log("This counts: ");
+      console.log(util.inspect(totals));
+      */
+
+      TotalsTable.pushObjectRow(totals);
+    });
+
+    // Build Nashville table
+    _(counts.nashville).forEach(function(sportsTotals, sport) {
+      /*
+      console.log("This counts: ");
+      console.log(util.inspect(sportsTotals));
+      */
+
+      NashvilleTable.pushObjectRow(sportsTotals);
+    });
+
+    // Build At-large table
+    _(counts.atLarge).forEach(function(sportsTotals, sport) {
+      /*
+      console.log("This counts: ");
+      console.log(util.inspect(sportsTotals));
+      */
+
+      AtLargeTable.pushObjectRow(sportsTotals);
+    });
+
+    // Build Memphis table
+    _(counts.memphis).forEach(function(sportsTotals, sport) {
+      /*
+      console.log("This counts: ");
+      console.log(util.inspect(sportsTotals));
+      */
+
+      MemphisTable.pushObjectRow(sportsTotals);
+    });
+  };
+
+  /* Main program logic */
+  var labelsTotal = ["Clubs", "# of activities", "# of hours", "Juniors", "Youth", 
+                     "Adult", "Veterans", "# of Volunteer Staff",
+                      "Volunteer Hours"];
+  // The schema
+  var schema = ["string", "number", "number", 
+                "number", "number", "number", "number",
+                "number", "number"];
   
+  // Labels for the monthly report per region
+  var labelsMonthly = ["Program", "# of activities", "# of hours", "Juniors", "Youth", "Adult", 
+                      "Veterans", "# of Volunteer Staff",
+                      "Volunteer Hours"];
+
+  // Tables
+  var TotalsTable = new xls.Table("Monthly Totals", schema, labelsTotal);
+  var NashvilleTable = new xls.Table("Nashville Breakdown", schema, labelsMonthly);
+  var MemphisTable = new xls.Table("Memphis Breakdown", schema, labelsMonthly);
+  var AtLargeTable = new xls.Table("At-Large Breakdown", schema, labelsMonthly);
+
+  var counts = {};
+  counts.totals = {};
+  counts.nashville = {};
+  counts.memphis = {};
+  counts.atLarge = {};
+
+  // Populate totals
+  counts.totals.atLarge = genCountsObject("At-Large");
+  counts.totals.nashville = genCountsObject("Nashville");
+  counts.totals.memphis = genCountsObject("Memphis");
+
+  // Generate Counts For Individual Sports
+  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Run\/Walk', 'BR dancing', 'Golf', 'Kickball'];
+  for (var i = 0; i < sports.length; i++) {
+    counts.nashville[sports[i]] = genCountsObject(sports[i]);
+    counts.memphis[sports[i]] = genCountsObject(sports[i]);
+    counts.atLarge[sports[i]] = genCountsObject(sports[i]);
+  }
+
+  // Populate the counts array
+  async.waterfall([
+    function processEvents(callback) {
+      Event.loadObjectsByMonth(relevantDate, function(err, objects) {
+        if (err) {
+          // Inform the callback of the error
+          callback(err);
+        } else {
+          for (var i = 0; i < objects.length; i++) {
+            // Registrations (to send to next function in the list)
+            var registrations = [];
+
+            // Process the event object data
+            var object = objects[i];
+
+            var sport = getSportNameInContext(object.sport);
+            var club = getClubNameInContext(object.club);
+            var numHours = getDuration(object.start, object.end);
+
+            if (sport == undefined) {
+              // For now, an undefined sport is simply walk/run (By nature of the database schema)
+              sport = "Run\/Walk";
+            }
+
+            console.log("Sport: " + sport);
+            console.log("Club: " + club);
+            console.log("Hours: " + numHours);
+
+            /* Increment the total number of activities for the specified sport */
+            counts.totals[club].activities++;
+            counts.totals[club].hours += numHours;
+            counts[club][sport].activities++;
+            counts[club][sport].hours += numHours;
+
+
+            // Prepare to pass the object to the next function in the waterfall
+            var nextObject = {};
+            nextObject.sport = sport;
+            nextObject.club = club;
+            nextObject.numHours = numHours;
+
+            for (var i = 0; i < object.registrations.length; i++) {
+              registrations[registrations.length] = {
+                sport: sport,
+                club: club,
+                numHours: numHours,
+                id: object.registrations[i].id
+              }
+            }
+
+            // Send registrations to the next guy
+            console.log("Registrations before: " + util.inspect(registrations));
+            callback(null, registrations);
+          }
+        }
+      });
+    },
+
+    /* Process registrations and update coutns, then give the advanced 
+     * Registration information to 
+     * Process users */
+    function processRegistrations(regList, callback) {
+      //console.log("Reg list: " + util.inspect(regList));
+      var funcList = [];
+      for (var i = 0; i < regList.length; i++) {
+        var reg = regList[i];
+        // Get an array of functions related to each registration
+        funcList[i] = (function(reg) {
+          return function(cbinterior) {
+            Registration.loadRegistrationById(reg.id, function(err, registration) {
+              if (err) {
+                // Error is sent to callback
+                cbinterior(err);
+              } else {
+                // Process the given registration
+                if (registration.type === "Volunteer") {
+                  // Incrment the number of volunteers, if applicable
+                  counts.totals[reg.club].volunteers++;
+                  counts[reg.club][reg.sport].volunteers++; 
+
+                  // This is probably not the right way to calculate volunteer hours
+                  counts.totals[reg.club].volunteerHours += reg.numHours;
+                  counts[reg.club][reg.sport].volunteerHours += reg.numHours;
+                }
+
+                // Slyly insert more data for registration user data
+                registration.club = reg.club;
+                registration.sport = reg.sport;
+                registration.numHours = reg.numHours;
+
+                callback(null, registration);
+              }
+            });
+          }
+        })(reg);
+
+        console.log("Asyncing");
+      }
+
+      async.parallel(funcList, function(err, registrations) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, registrations)
+        }
+      });
+    },
+
+    /* Process the users associated with each registration */
+    function processRegistrationUsers(registrations, callback) {
+      console.log("Registrations: " + registrations);
+      var funcList = [];
+      for (var i = 0; i < registrations.length; i++) {
+        var registration = registrations[i];
+        funcList[i] = (function(registration) {
+          return function(cbinterior) {
+            Registration.loadUserObject(registration, function(err, user) {
+              if (err) {
+                cbinterior(err);
+              } else {
+                // Check if the user is veteran
+                if (user.isVeteran) {
+                  counts.totals[registration.club].veterans++;
+                  counts[registration.club][registrations.sport].veterans++;
+                }
+
+                var userAgeGroup = getAgeGroup(user.dob);
+                counts.totals[registration.club][userAgeGroup]++;
+                counts[club][sport][userAgeGroup]++;
+
+                callback(null);
+              }
+            });
+          }
+        })(registration);
+      }
+
+      async.parallel(funcList, function(err) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      });
+    }
+
+  ], function(err) {
+    if (err) {
+      done(err);
+    } else {
+      // Prepare for table completion
+      buildTables();
+      var data = {
+        name: "TNABA Monthly Programming Report",
+        0: {
+          totals: TotalsTable,
+          nashville: NashvilleTable,
+          atlarge: AtLargeTable,
+          memphis: MemphisTable
+        }
+      }
+
+      console.log(util.inspect(TotalsTable.rows));
+      console.log(util.inspect(NashvilleTable.rows));
+      console.log(util.inspect(AtLargeTable.rows));
+      console.log(util.inspect(MemphisTable.rows));
+      done(null, data);
+    }
+  });
 }
 
 function getMonthlyMembership(relevantDate, done) {
-   var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
+  var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
   var newMemberSchema = ["number", "string", "string", "string", "string", "string"]
 
   var overallLabels = ["New Members", "Total Members"];
@@ -125,6 +389,7 @@ function getMonthlyMembership(relevantDate, done) {
 
       User.loadObjects(function(err, objects) {
         if (err) {
+          console.error("Big trubble");
           console.error(err);
           callback(err);
           return;
@@ -211,24 +476,25 @@ function getMonthlyMembership(relevantDate, done) {
     if (err) {
       done(err);
       return;
+    } else {
+      OverallCount.pushRow(counts);
+
+      var data = {
+        name: "TNABA Monthly Membership Data",
+        0: {
+          overall: OverallCount,
+          summary: NewMemberSummary,
+          gender: GenderBreakdown,
+          age: AgeBreakdown,
+          status: StatusBreakdown
+        }
+      };
+
+      //console.log("Report: " + callbackReport.toString());
+      //console.log("Info: " + callbackInfo.toString());
+
+      done(null, data);
     }
-    OverallCount.pushRow(counts);
-
-    var data = {
-      name: "TNABA Monthly Membership Data",
-      set1: {
-        overall: OverallCount,
-        summary: NewMemberSummary,
-        gender: GenderBreakdown,
-        age: AgeBreakdown,
-        status: StatusBreakdown
-      }
-    };
-
-    //console.log("Report: " + callbackReport.toString());
-    //console.log("Info: " + callbackInfo.toString());
-
-    done(null, data);
   });
 }
 

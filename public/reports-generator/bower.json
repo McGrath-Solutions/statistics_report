@@ -1,0 +1,35 @@
+{
+  "name": "reports-generator",
+  "version": "0.1.0",
+  "description": "Client-side reports generation",
+  "keywords": [
+    "reports",
+    "excel",
+    "pdf"
+  ],
+  "main": [
+    "./dist/compiled-generator.min.js"
+  ],
+  "authors": [
+    "Mike Zhang"
+  ],
+  "dependencies": {
+    "lodash": "2.x",
+    "jspdf": "1.x",
+    "js-xlsx": "0.x",
+    "requirejs": "~2.1.14",
+    "FileSaver.js": "eligrey/FileSaver.js"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/bayofpigs/reports-generator",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "build",
+    "node_modules",
+    "src"
+  ]
+}

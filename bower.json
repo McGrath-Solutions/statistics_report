@@ -15,7 +15,8 @@
   "dependencies": {
     "bootstrap": "latest",
     "jquery": "latest",
-    "angular": "latest"
+    "angular": "latest",
+    "reports-generator": "~0.1.0"
   },
   "license": "MIT",
   "private": true,
