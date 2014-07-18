@@ -44,6 +44,9 @@ bower_components
 public/bootstrap
 public/jquery
 public/angular
+public/lodash
+public/reports-generator
+public/requirejs
 
 ## Personal ##
 test
