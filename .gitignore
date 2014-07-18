@@ -47,6 +47,9 @@ public/angular
 public/lodash
 public/reports-generator
 public/requirejs
+public/FileSaver.js
+public/js-xlsx
+public/jspdf
 
 ## Personal ##
 test
