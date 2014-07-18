@@ -200,7 +200,6 @@ var makeMonthlyMembership = function(relevantDate, path, callbackInfo, callbackR
         AgeBreakdown.pushRow(ageFrac);
 
         StatusBreakdown.pushRow(statusCounts);
-
         callback(err, numUsers);
       });
     }

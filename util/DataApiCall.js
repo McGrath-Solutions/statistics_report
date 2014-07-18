@@ -160,6 +160,8 @@ function getMonthlyProgramming(relevantDate, done) {
     counts.atLarge[sports[i]] = genCountsObject(sports[i]);
   }
 
+  //console.log(counts);
+
   // Populate the counts array
   async.waterfall([
     function processEvents(callback) {
@@ -169,6 +171,9 @@ function getMonthlyProgramming(relevantDate, done) {
           callback(err);
         } else {
           for (var i = 0; i < objects.length; i++) {
+            console.log("Start of for loop");
+            console.log(objects.length);
+            console.log(i);
             // Registrations (to send to next function in the list)
             var registrations = [];
 
@@ -201,19 +206,18 @@ function getMonthlyProgramming(relevantDate, done) {
             nextObject.club = club;
             nextObject.numHours = numHours;
 
-            for (var i = 0; i < object.registrations.length; i++) {
+            for (var j = 0; j < object.registrations.length; j++) {
               registrations[registrations.length] = {
                 sport: sport,
                 club: club,
                 numHours: numHours,
                 id: object.registrations[i].id
               }
-            }
 
-            // Send registrations to the next guy
-            console.log("Registrations before: " + util.inspect(registrations));
-            callback(null, registrations);
+              console.log[registrations.length];
+            }
           }
+          callback(null, registrations);
         }
       });
     },
@@ -223,6 +227,8 @@ function getMonthlyProgramming(relevantDate, done) {
      * Process users */
     function processRegistrations(regList, callback) {
       //console.log("Reg list: " + util.inspect(regList));
+      console.log("At registrations");
+
       var funcList = [];
       for (var i = 0; i < regList.length; i++) {
         var reg = regList[i];
@@ -255,8 +261,6 @@ function getMonthlyProgramming(relevantDate, done) {
             });
           }
         })(reg);
-
-        console.log("Asyncing");
       }
 
       async.parallel(funcList, function(err, registrations) {
@@ -270,6 +274,7 @@ function getMonthlyProgramming(relevantDate, done) {
 
     /* Process the users associated with each registration */
     function processRegistrationUsers(registrations, callback) {
+      console.log("At users");
       console.log("Registrations: " + registrations);
       var funcList = [];
       for (var i = 0; i < registrations.length; i++) {
@@ -308,8 +313,10 @@ function getMonthlyProgramming(relevantDate, done) {
 
   ], function(err) {
     if (err) {
+      console.log("ERROR");
       done(err);
     } else {
+      console.log("Building tables");
       // Prepare for table completion
       buildTables();
       var data = {
@@ -322,10 +329,19 @@ function getMonthlyProgramming(relevantDate, done) {
         }
       }
 
+      
+      console.log("Totals Table");
       console.log(util.inspect(TotalsTable.rows));
+
+      console.log("Nashville Table");
       console.log(util.inspect(NashvilleTable.rows));
+
+      console.log("At Large Table");
       console.log(util.inspect(AtLargeTable.rows));
+
+      console.log("Memphis Table");
       console.log(util.inspect(MemphisTable.rows));
+      
       done(null, data);
     }
   });
