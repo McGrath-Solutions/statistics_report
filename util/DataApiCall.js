@@ -542,6 +542,6 @@ module.exports = function(dataType, relevantDate, callback) {
   } else if (dataType === "Monthly Membership Report") {
     getMonthlyMembership(relevantDate, callback);
   } else {
-    callbackReport(new Error("Unkown Report"));
+    callback(new Error("Unkown Report"));
   }
 }

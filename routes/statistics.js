@@ -2,6 +2,7 @@ var genReport = require('../util/reportsGenerator');
 var mkdirp = require('mkdirp');
 var util = require('util');
 var fs = require('fs');
+var api = require('../util/DataApiCall');
 
 /* Helper functions */
 var getReportType = function(type) {
@@ -20,6 +21,39 @@ exports.stats = function(req, res) {
 // Accept user uploads of xls, csv based reports files
 exports.upload = function(req, res) {
   res.render('import', {user: req.user});
+}
+
+// Send back data relating to a specific report
+exports.api = function(req, res) {
+  if (!req.user) {
+    res.send({needLogin: true});
+  } else {
+    var type = req.params.type;
+    var date = new Date(req.params.date);
+    var uid = req.user.attributes.uid;
+
+    console.log(type);
+    console.log(date);
+    console.log(uid);
+    if (!type) {
+      res.send("Unknown type");
+    } else {
+      var reportType = getReportType(type);
+
+      // Check if the date is valid. If it is not, return today.
+      if (isNaN(date.getTime())) {
+        date = new Date();
+      }
+
+      api(reportType, date, function(err, data) {
+        if (err) {
+          res.send("Error: " + err);
+        } else {
+          res.send(data);
+        }
+      });
+    }
+  }
 }
 
 // Page to export reports as csv files

@@ -1,4 +1,13 @@
-(function() {
+require({
+  /* Base url in directory above */
+  baseUrl: "../",
+  paths: {
+    jquery: "jquery/dist/jquery.min.js",
+    main: "reports-generator/dist/compiled-generator.min.js"
+  }
+},
+['jquery', 'main'], 
+function($, ReportsGenerator) {
 
   $(document).ready(function() {
     console.log("ready");
@@ -134,4 +143,4 @@
         loading.hide();
       });
   });
-})();
+});
