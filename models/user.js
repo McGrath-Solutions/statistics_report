@@ -141,8 +141,8 @@ module.exports = (function() {
     var dateStartDrupalTime = dateStart.getTime() / 1000;
     var dateEndDrupalTime = dateEnd.getTime() / 1000;
 
-    console.log("Start: " + dateStartDrupalTime);
-    console.log("End  : " + dateEndDrupalTime);
+   // console.log("Start: " + dateStartDrupalTime);
+    //console.log("End  : " + dateEndDrupalTime);
 
     new User().query(function(qb) {
       return qb.whereBetween('created', [dateStartDrupalTime, dateEndDrupalTime]);

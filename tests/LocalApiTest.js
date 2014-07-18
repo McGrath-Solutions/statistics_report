@@ -10,7 +10,7 @@ api("Monthly Membership Report", new Date(2014, 2, 1), function(err, data) {
 });
 */
 
-api("Monthly Programming Report", new Date(2014, 5, 1), function(err, data) {
+api("Monthly Programming Report", new Date(2014, 6, 1), function(err, data) {
   if (err) {
     console.error("Error occured");
     console.error(err);

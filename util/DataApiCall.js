@@ -170,12 +170,12 @@ function getMonthlyProgramming(relevantDate, done) {
           // Inform the callback of the error
           callback(err);
         } else {
+          var registrations = [];
           for (var i = 0; i < objects.length; i++) {
-            console.log("Start of for loop");
-            console.log(objects.length);
-            console.log(i);
+            //console.log("Start of for loop");
+            //console.log(objects.length);
+            //console.log(i);
             // Registrations (to send to next function in the list)
-            var registrations = [];
 
             // Process the event object data
             var object = objects[i];
@@ -189,10 +189,12 @@ function getMonthlyProgramming(relevantDate, done) {
               sport = "Run\/Walk";
             }
 
+            /*
             console.log("Sport: " + sport);
             console.log("Club: " + club);
             console.log("Hours: " + numHours);
-
+            */
+           
             /* Increment the total number of activities for the specified sport */
             counts.totals[club].activities++;
             counts.totals[club].hours += numHours;
@@ -207,16 +209,19 @@ function getMonthlyProgramming(relevantDate, done) {
             nextObject.numHours = numHours;
 
             for (var j = 0; j < object.registrations.length; j++) {
+              //console.log("In registrations " + j);
               registrations[registrations.length] = {
                 sport: sport,
                 club: club,
                 numHours: numHours,
-                id: object.registrations[i].id
+                id: object.registrations[j].id
               }
 
-              console.log[registrations.length];
+              //console.log(registrations.length);
             }
           }
+
+          //console.log("Registrations: " + registrations);
           callback(null, registrations);
         }
       });
@@ -227,7 +232,8 @@ function getMonthlyProgramming(relevantDate, done) {
      * Process users */
     function processRegistrations(regList, callback) {
       //console.log("Reg list: " + util.inspect(regList));
-      console.log("At registrations");
+      //console.log("At registrations");
+      //console.log(regList.length);
 
       var funcList = [];
       for (var i = 0; i < regList.length; i++) {
@@ -241,6 +247,8 @@ function getMonthlyProgramming(relevantDate, done) {
                 cbinterior(err);
               } else {
                 // Process the given registration
+                //console.log("Registration checking");
+                //console.log(reg);
                 if (registration.type === "Volunteer") {
                   // Incrment the number of volunteers, if applicable
                   counts.totals[reg.club].volunteers++;
@@ -256,12 +264,14 @@ function getMonthlyProgramming(relevantDate, done) {
                 registration.sport = reg.sport;
                 registration.numHours = reg.numHours;
 
-                callback(null, registration);
+                cbinterior(null, registration);
               }
             });
           }
         })(reg);
       }
+
+      //console.log(funcList);
 
       async.parallel(funcList, function(err, registrations) {
         if (err) {
@@ -274,30 +284,38 @@ function getMonthlyProgramming(relevantDate, done) {
 
     /* Process the users associated with each registration */
     function processRegistrationUsers(registrations, callback) {
-      console.log("At users");
-      console.log("Registrations: " + registrations);
+      //console.log("At users");
+      //console.log("Registrations: " + registrations);
       var funcList = [];
       for (var i = 0; i < registrations.length; i++) {
         var registration = registrations[i];
         funcList[i] = (function(registration) {
           return function(cbinterior) {
-            Registration.loadUserObject(registration, function(err, user) {
-              if (err) {
-                cbinterior(err);
-              } else {
-                // Check if the user is veteran
-                if (user.isVeteran) {
-                  counts.totals[registration.club].veterans++;
-                  counts[registration.club][registrations.sport].veterans++;
+            if (!registration.uid) {
+              cbinterior(null);
+            } else {
+              Registration.loadUserObject(registration, function(err, user) {
+                if (err) {
+                  //console.log("ERROR THAT CAUSE CB TWICE: " + err);
+                  cbinterior(err);
+                } else {
+                  // Check if the user is veteran
+                  //console.log("User checking");
+                  //console.log(registration);
+
+                  if (user.isVeteran) {
+                    counts.totals[registration.club].veterans++;
+                    counts[registration.club][registration.sport].veterans++;
+                  }
+
+                  var userAgeGroup = getAgeGroup(user.dob);
+                  counts.totals[registration.club][userAgeGroup]++;
+                  counts[registration.club][registration.sport][userAgeGroup]++;
+
+                  cbinterior(null);
                 }
-
-                var userAgeGroup = getAgeGroup(user.dob);
-                counts.totals[registration.club][userAgeGroup]++;
-                counts[club][sport][userAgeGroup]++;
-
-                callback(null);
-              }
-            });
+              });
+            }
           }
         })(registration);
       }

@@ -185,15 +185,15 @@ function makeEvent() {
     var month = date.getMonth();
     var year = date.getFullYear();
 
-    console.log("Month: " + month);
-    console.log("Year: " + year);
+    //console.log("Month: " + month);
+    //console.log("Year: " + year);
 
     var dateStart = new Date(year, month, 1);
     var dateEnd = new Date(year, month + 1, 1)
     var relevantObjs = [];
 
-    console.log("Start: " + dateStart);
-    console.log("End: " + dateEnd);
+    //console.log("Start: " + dateStart);
+    //console.log("End: " + dateEnd);
     // Hack-y 
     Event.loadObjects(function(err, objects) {
       if (err) {
