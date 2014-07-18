@@ -28,6 +28,7 @@ exports.api = function(req, res) {
   if (!req.user) {
     res.send({needLogin: true});
   } else {
+    console.log(req.params.date);
     var type = req.params.type;
     var date = new Date(req.params.date);
     var uid = req.user.attributes.uid;

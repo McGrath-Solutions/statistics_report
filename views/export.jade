@@ -42,7 +42,10 @@ block content
       button.btn.btn-default(type="button", id="event") Tnaba event monthly report
 
     br
-    button.btn.btn-primary.btn-lg(id="download", class="notReady") Download Report
+    h4.notReady#downloadLabel Choose a file format:
+    button.btn.btn-primary.btn-lg(id="download", class="notReady") XLSX 
+    button.btn.btn-primary.btn-lg(id="downloadPDF", class="notReady") PDF
+    button.btn.btn-primary.btn-lg(id="downloadXLS", class="notReady") XLSX2
     div(id="loading")
       p 
         strong Please wait

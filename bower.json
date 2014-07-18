@@ -16,7 +16,7 @@
     "bootstrap": "latest",
     "jquery": "latest",
     "angular": "latest",
-    "reports-generator": "~0.1.0"
+    "reports-generator": "0.1.5"
   },
   "license": "MIT",
   "private": true,

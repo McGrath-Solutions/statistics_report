@@ -3,7 +3,17 @@
   margin-top: 10px;
 }
 
-#download.notReady {
+#downloadXLS {
+  display: inline-block;
+  margin-top: 10px;
+}
+
+#downloadPDF {
+  display: inline-block;
+  margin-top: 10px;
+}
+
+#downloadXLS.notReady, #download.notReady, #downloadPDF.notReady, #downloadLabel.notReady {
   display: none;
 }
 
@@ -17,4 +27,8 @@
 #year {
   display: inline;
   font-weight: bold;
+}
+
+#loading {
+  display: none;
 }

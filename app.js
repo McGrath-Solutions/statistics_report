@@ -71,7 +71,7 @@ app.get('/stats', user.ensureAuthenticated, statistics.stats)
 app.get('/stats/export', user.ensureAuthenticated, statistics.reports);
 app.get('/stats/import', user.ensureAuthenticated, statistics.upload);
 app.get('/download/:reportName', user.ensureAuthenticated, statistics.getReport);
-app.get('/api/:type/:dateFor', statistics.api);
+app.get('/api/:type/:date', statistics.api);
 app.post('/generate', statistics.genReport);
 
 http.createServer(app).listen(app.get('port'), function(){

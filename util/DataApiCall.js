@@ -338,12 +338,9 @@ function getMonthlyProgramming(relevantDate, done) {
       // Prepare for table completion
       buildTables();
       var data = {
-        name: "TNABA Monthly Programming Report",
-        0: {
-          totals: TotalsTable,
-          nashville: NashvilleTable,
-          atlarge: AtLargeTable,
-          memphis: MemphisTable
+        sheet1: {
+          name: "TNABA Monthly Programming Report",
+          data: [TotalsTable, NashvilleTable, AtLargeTable, MemphisTable]
         }
       }
 
@@ -514,13 +511,9 @@ function getMonthlyMembership(relevantDate, done) {
       OverallCount.pushRow(counts);
 
       var data = {
-        name: "TNABA Monthly Membership Data",
-        0: {
-          overall: OverallCount,
-          summary: NewMemberSummary,
-          gender: GenderBreakdown,
-          age: AgeBreakdown,
-          status: StatusBreakdown
+        sheet1: {
+          name: "TNABA Monthly Membership Data",
+          data: [OverallCount, NewMemberSummary, GenderBreakdown, AgeBreakdown, StatusBreakdown]
         }
       };
 

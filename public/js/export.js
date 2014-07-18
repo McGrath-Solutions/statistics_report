@@ -2,12 +2,13 @@ require({
   /* Base url in directory above */
   baseUrl: "../",
   paths: {
-    jquery: "jquery/dist/jquery.min.js",
-    main: "reports-generator/dist/compiled-generator.min.js"
+    jquery: "jquery/dist/jquery.min",
+    main: "reports-generator/dist/compiled-generator"
   }
 },
 ['jquery', 'main'], 
 function($, ReportsGenerator) {
+  console.log($);
 
   $(document).ready(function() {
     console.log("ready");
@@ -24,17 +25,70 @@ function($, ReportsGenerator) {
       var eve = $('#event').is(':focus');
       if (!mem && !eve) {
         $('#selected').text("No report type selected.");
+        $('#downloadLabel').addClass("notReady");
         $('#download').addClass("notReady");
+        $('#downloadPDF').addClass("notReady");
+        $('#downloadXLS').addClass("notReady");
       }
     };
 
     var selected = function(el) {
       var elId = el.attr('id');
       $('#selected').text("Selected " + elId + " report.");
+      $('#downloadLabel').removeClass("notReady");
       $('#download').removeClass("notReady");
+      $('#downloadPDF').removeClass("notReady");
+      $('#downloadXLS').removeClass("notReady");
       ready = true;
 
+      el.focus();
       focusedName = elId;
+    };
+
+    var translateSchemaInstance = function(instance) {
+      console.log(instance);
+      if (instance === "number") {
+        return Number;
+      } else if (instance === "date") {
+        return Date;
+      } else if (instance === "boolean") {
+        return Boolean;
+      } else if (instance === "string") {
+        return String;
+      }
+    }
+
+    var translateSchema = function(schema) {
+      var newSchema = [];
+      console.log(schema);
+      for (var i = 0; i < schema.length; i++) {
+        newSchema[i] = translateSchemaInstance(schema[i]);
+      }
+
+      return newSchema;
+    }
+
+    var loadFromAPIObject = function(res) {
+      var reportObject = {
+        sheet1: {
+          name: res.sheet1.name
+        }
+      }
+
+      reportObject.sheet1.information = {};
+      reportObject.sheet1.information.Generated = new Date();
+      reportObject.sheet1.information.Month = Number(monthSelected + 1) + "/" + yearSelected;
+      reportObject.sheet1.data = [];
+
+      var resData = res.sheet1.data;
+      for (var i = 0; i < resData.length; i++) {
+        resData[i].schema = translateSchema(resData[i].schema);
+        reportObject.sheet1.data[i] = ReportsGenerator.Table.initializeFromTable(resData[i]);
+      }
+
+      console.log(reportObject.sheet1.data);
+
+      return reportObject;
     };
 
     // Local variables
@@ -58,7 +112,7 @@ function($, ReportsGenerator) {
     yearDisplay.text(thisYear);
     monthSelector.val(thisMonth);
     monthSelector.on('change', function() {
-      var month = $(this).val();
+      var month = Number($(this).val());
       monthSelected = month;
       if (thisMonth >= month) {
         yearDisplay.text(thisYear);
@@ -126,6 +180,57 @@ function($, ReportsGenerator) {
         }
       })
     });
+
+    var universalClickListener = function() {
+      var id = $(this).attr('id');
+      console.log("Clicked");
+
+      ready = false;
+      var dateString = Number(monthSelected + 1) + "-1-" + yearSelected;
+      var url = "/api/" + focusedName + "/" + dateString;
+      console.log(dateString);
+
+      $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+          console.log(id);
+          console.log(response);
+
+          if (response.needLogin) {
+            window.location.href = "/login";
+          }
+
+          var reportObject = loadFromAPIObject(response);
+
+          
+          var fileName = focusedName + "-" + Number(monthSelected + 1) + "-" + yearSelected;
+
+          if (id === "downloadPDF") {
+            ReportsGenerator.PDFReport(reportObject, function(err, obj) {
+              obj.save(fileName);
+            })
+          } else if (id == "downloadXLS") {
+            ReportsGenerator.ExcelReport(reportObject, function(err, obj) {
+              obj.save(fileName);
+            });
+          }
+        },
+        error: function(jq, status, err) {
+          console.error("Error: " + err);
+        },
+        complete: function() {
+          ready = true;
+        }
+      })
+    };
+
+    /* 
+     * Client-side based click callback 
+     */
+    $('#downloadXLS').on('click', universalClickListener);
+    $('#downloadPDF').on('click', universalClickListener);
 
     // Clicking the document clears the button (and the selection)
     $(this).on('click', function() {
