@@ -13,7 +13,7 @@ module.exports = (function() {
     "Stats Goalball": "stats_goalball"
   }
 
-  /* Enumerated properties for each statistic */
+  /* List of properties for each statistic  type*/
   var TypeProperties = {
     'stats_goalball_tournament': [],
     'sports_statistic': ["participant", "minutes", "hours", 
@@ -22,6 +22,17 @@ module.exports = (function() {
     'stats_goalball': [],
     'stats_health_check': [],
     'stats_cycling': []
+  }
+
+  // Property type information
+  var STANDARD = 0; // Standard data property (postfixed by value)
+  var USER_ID = 1;  // User id suffix
+  var PropertyType = {
+    "participant": USER_ID,
+    "minutes": STANDARD,
+    "hours": STANDARD,
+    "seconds": STANDARD,
+    "distanceInMiles": STANDARD
   }
 
   var PropertyTable = {
@@ -44,45 +55,30 @@ module.exports = (function() {
 
   /* Generate a node for the given statistic */
   var getStatisticNode = function(statistic_name) {
-    
-
     var properties = TypeProperties[statistic_name];
     var ext = {};
+
     for (var i = 0; i < properties.length; i++) {
       var property = properties[i];
       var PropertyObject = PropertyTable[property];
       ext[property] = (function(PropertyObject) {
         return function() {
-          console.log("Property: " + property);
-          console.log(PropertyObject);
-          this.hasOne(PropertyObject, "entity_id");
+          return this.hasOne(PropertyObject, "entity_id");
         }
       })(PropertyObject);
     }
 
-    ext.tableName = "node";
-
-    ext.constructor = function() {
-      Bookshelf.Model.apply(this, arguments);
-      this.query('where', 'type', '=', statistic_name);
-    }
-
-    /*
     var model = Bookshelf.Model.extend({
       tableName: "node",
       constructor: function() {
         Bookshelf.Model.apply(this, arguments);
         this.query('where', 'type', '=', statistic_name);
-      }
+      },
+      idAttribute: "nid"
     });
-    */
-   
-    var model = Bookshelf.Model.extend(ext);
 
-    /*
-    model.extend(ext);
-    */
-   
+    // A wee bit of a hack
+    model = model.extend(ext);
     return model;
   };
 
@@ -90,8 +86,12 @@ module.exports = (function() {
     return camelInstance.replace(/[A-Z]/g, function($1) { return "_" + $1.toLowerCase(); });
   }
 
-  var getDrupalColumnField = function(property) {
-    return 'field_' + camelToUnderscore(property) + "_data"
+  var getDrupalColumnField = function(property, propType) {
+    if (propType == STANDARD) {
+      return 'field_' + camelToUnderscore(property) + "_value";
+    } else {
+      return 'field_' + camelToUnderscore(property) + "_target_id";
+    }
   }
 
 
@@ -107,14 +107,19 @@ module.exports = (function() {
   }
 
   Statistic.initFromDatabaseObject = function(type, model) {
+    console.log(model.relations.participant);
     var entityType = TypeTable[type] || type;
     var related = TypeProperties[entityType];
 
     var init = {};
     for (var i = 0; i < related.length; i++) {
       var prop = related[i];
-      init[prop] = model.related(prop).attributes[getDrupalColumnField];
+      var propType = PropertyType[prop];
+      var drupalAttr = getDrupalColumnField(prop, propType);
+      init[prop] = model.related(prop).attributes[drupalAttr];
     }
+
+    return new Statistic(type, init);
   }
 
   Statistic.loadObjects = function(type, callback) {
@@ -122,8 +127,8 @@ module.exports = (function() {
     var StatisticNode = getStatisticNode(entityType);
     var related = TypeProperties[entityType];
 
-    console.log(StatisticNode);
-    console.log("Right before fetch");
+    //console.log(StatisticNode);
+    //console.log("Right before fetch");
     new StatisticNode().fetchAll({
       withRelated: related
     }).then(function(Collection) {
@@ -134,27 +139,13 @@ module.exports = (function() {
       }
 
       callback(null, objects);
-    }).return(function(err) {
+    }).catch(function(err) {
       callback(err);
     });
   };
 
   return Statistic;
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
