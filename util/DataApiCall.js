@@ -74,8 +74,8 @@ var getAgeGroup = function(dateOfBirth) {
 function getMonthlyProgramming(relevantDate, done) {
   /* Helper functions */
   var genCountsObject = function(title) {
-    var obj = {name: title, activities: 0, hours: 0, juniors: 0, adults: 0, guests: 0,
-               veterans: 0, volunteers: 0,
+    var obj = {name: title, activities: 0, hours: 0, juniors: 0, adults: 0, veterans: 0,
+               guests: 0, volunteers: 0,
                volunteerHours: 0};
 
     return obj;
@@ -312,6 +312,9 @@ function getMonthlyProgramming(relevantDate, done) {
         funcList[i] = (function(registration) {
           return function(cbinterior) {
             if (!registration.uid) {
+              // The registration is anonymous. We will consider this user a guest.
+              counts.totals[registration.club].guests++;
+              counts[registration.club][registration.sport].guests++;
               cbinterior(null);
             } else {
               Registration.loadUserObject(registration, function(err, user) {
