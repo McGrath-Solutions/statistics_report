@@ -28,15 +28,19 @@ var getSportNameInContext = function(dbName) {
 
 /* Get the club name of the sport in context of this report */
 var getClubNameInContext = function(dbClubName) {
+  console.log(dbClubName);
   if (dbClubName === "At-Large") {
-    return "atLarge";
+    // For legacy events
+    return "statewide";
   } else if (dbClubName === "Memphis") {
     return "memphis";
   } else if (dbClubName === "Nashville") {
     return "nashville";
+  } else if (dbClubName === "Statewide") {
+    return "statewide";
   } else if (!dbClubName) {
-    console.error("Club name is not defined, defaulting to atLarge");
-    return "atLarge";
+    console.error("Club name is not defined, defaulting to statewide");
+    return "statewide";
   }
 };
 
@@ -101,13 +105,13 @@ function getMonthlyProgramming(relevantDate, done) {
     });
 
     // Build At-large table
-    _(counts.atLarge).forEach(function(sportsTotals, sport) {
+    _(counts.statewide).forEach(function(sportsTotals, sport) {
       /*
       console.log("This counts: ");
       console.log(util.inspect(sportsTotals));
       */
 
-      AtLargeTable.pushObjectRow(sportsTotals);
+      StatewideTable.pushObjectRow(sportsTotals);
     });
 
     // Build Memphis table
@@ -139,16 +143,16 @@ function getMonthlyProgramming(relevantDate, done) {
   var TotalsTable = new xls.Table("Monthly Totals", schema, labelsTotal);
   var NashvilleTable = new xls.Table("Nashville Breakdown", schema, labelsMonthly);
   var MemphisTable = new xls.Table("Memphis Breakdown", schema, labelsMonthly);
-  var AtLargeTable = new xls.Table("At-Large Breakdown", schema, labelsMonthly);
+  var StatewideTable = new xls.Table("At-Large Breakdown", schema, labelsMonthly);
 
   var counts = {};
   counts.totals = {};
   counts.nashville = {};
   counts.memphis = {};
-  counts.atLarge = {};
+  counts.statewide = {};
 
   // Populate totals
-  counts.totals.atLarge = genCountsObject("At-Large");
+  counts.totals.statewide = genCountsObject("At-Large");
   counts.totals.nashville = genCountsObject("Nashville");
   counts.totals.memphis = genCountsObject("Memphis");
 
@@ -157,7 +161,7 @@ function getMonthlyProgramming(relevantDate, done) {
   for (var i = 0; i < sports.length; i++) {
     counts.nashville[sports[i]] = genCountsObject(sports[i]);
     counts.memphis[sports[i]] = genCountsObject(sports[i]);
-    counts.atLarge[sports[i]] = genCountsObject(sports[i]);
+    counts.statewide[sports[i]] = genCountsObject(sports[i]);
   }
 
   //console.log(counts);
@@ -188,6 +192,9 @@ function getMonthlyProgramming(relevantDate, done) {
               // For now, an undefined sport is simply walk/run (By nature of the database schema)
               sport = "Run\/Walk";
             }
+
+            console.log(club);
+            console.log(sport);
 
             /*
             console.log("Sport: " + sport);
@@ -340,7 +347,7 @@ function getMonthlyProgramming(relevantDate, done) {
       var data = {
         sheet1: {
           name: "TNABA Monthly Programming Report",
-          data: [TotalsTable, NashvilleTable, AtLargeTable, MemphisTable]
+          data: [TotalsTable, NashvilleTable, StatewideTable, MemphisTable]
         }
       }
 
@@ -352,7 +359,7 @@ function getMonthlyProgramming(relevantDate, done) {
       console.log(util.inspect(NashvilleTable.rows));
 
       console.log("At Large Table");
-      console.log(util.inspect(AtLargeTable.rows));
+      console.log(util.inspect(StatewideTable.rows));
 
       console.log("Memphis Table");
       console.log(util.inspect(MemphisTable.rows));
