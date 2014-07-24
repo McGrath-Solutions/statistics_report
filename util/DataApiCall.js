@@ -144,7 +144,7 @@ function getMonthlyProgramming(relevantDate, done) {
   var TotalsTable = new xls.Table("Monthly Totals", schema, labelsTotal);
   var NashvilleTable = new xls.Table("Nashville Breakdown", schema, labelsMonthly);
   var MemphisTable = new xls.Table("Memphis Breakdown", schema, labelsMonthly);
-  var StatewideTable = new xls.Table("At-Large Breakdown", schema, labelsMonthly);
+  var StatewideTable = new xls.Table("Statewide Breakdown", schema, labelsMonthly);
 
   var counts = {};
   counts.totals = {};
@@ -153,7 +153,7 @@ function getMonthlyProgramming(relevantDate, done) {
   counts.statewide = {};
 
   // Populate totals
-  counts.totals.statewide = genCountsObject("At-Large");
+  counts.totals.statewide = genCountsObject("Statewide");
   counts.totals.nashville = genCountsObject("Nashville");
   counts.totals.memphis = genCountsObject("Memphis");
 
