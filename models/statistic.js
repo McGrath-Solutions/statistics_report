@@ -15,13 +15,25 @@ module.exports = (function() {
 
   /* List of properties for each statistic  type*/
   var TypeProperties = {
-    'stats_goalball_tournament': [],
-    'sports_statistic': ["participant", "minutes", "hours", 
+    'stats_goalball_tournament': {
+      contains: ["goalballTeam"],
+    }
+    'sports_statistic': {
+      related: ["participant", "minutes", "hours", 
                          "seconds", "distanceInMiles"],
-    'bowling_scores': [],
-    'stats_goalball': [],
-    'stats_health_check': [],
-    'stats_cycling': []
+    }
+    'bowling_scores': {
+
+    },
+    'stats_goalball': {
+
+    },
+    'stats_health_check': {
+
+    },
+    'stats_cycling': {
+
+    }
   }
 
   // Property type information

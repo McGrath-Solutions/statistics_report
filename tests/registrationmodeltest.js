@@ -10,7 +10,7 @@ var printstuff = function(err, models) {
 // Print all models
 Registration.loadObjects(printstuff);
 
-Registration.loadRegistrationById(10, function(reg) {
+Registration.loadRegistrationById(1, function(reg) {
   console.log("Your loaded reg: ");
   console.log(reg);
 }, function(err) {

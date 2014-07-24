@@ -81,7 +81,7 @@ function makeEvent() {
 
   // Database table for Event Sports Club
   var EventSportsClub = bookshelf.Model.extend({
-    tableName: "field_data_field_sports_club"
+    tableName: "field_data_field_sports_club_event"
   })
 
   // Event constructor declarations
@@ -135,7 +135,7 @@ function makeEvent() {
     initObject.coordinator = model.related('coordinator').attributes.field_event_coordinater_target_id;
     initObject.sport = model.related('sport').attributes.field_event_sport_value;
     initObject.type = model.related('type').attributes.field_event_type_value;
-    initObject.club = model.related('sportsClub').attributes.field_sports_club_value;
+    initObject.club = model.related('sportsClub').attributes.field_sports_club_event_value;
 
     //console.log("Club info: ");
     //console.log(model.related('sportsClub').attributes);
