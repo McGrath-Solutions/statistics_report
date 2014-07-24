@@ -28,7 +28,7 @@ var getSportNameInContext = function(dbName) {
 
 /* Get the club name of the sport in context of this report */
 var getClubNameInContext = function(dbClubName) {
-  console.log(dbClubName);
+  // console.log(dbClubName);
   if (dbClubName === "At-Large") {
     // For legacy events
     return "statewide";
@@ -193,8 +193,8 @@ function getMonthlyProgramming(relevantDate, done) {
               sport = "Run\/Walk";
             }
 
-            console.log(club);
-            console.log(sport);
+            // console.log(club);
+            // console.log(sport);
 
             /*
             console.log("Sport: " + sport);
