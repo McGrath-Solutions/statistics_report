@@ -11,18 +11,22 @@ var _ = require('lodash');
 /* Helper methods */
 /* Get the sport in the context of this report associated with the event sport stored in database */
 var getSportNameInContext = function(dbName) {
-  if (dbName === "Goalball Tournament") {
-    return 'Goalball';
-  } else if (dbName === 'Cycling') {
-    return 'Cycling';
-  } else if (dbName === 'Bowling') {
-    return 'Bowling';
-  } else if (dbName === 'Achilles') {
-    return 'Run\/Walk';
-  } else if (dbName === 'Goalball') {
-    return 'Goalball';
+  var contextTable =  {
+    "Goalball Tournament": "Goalball",
+    "Goalball Practice": "Goalball",
+    "Cycling": "Cycling",
+    "Bowling": "Bowling",
+    "Achilles": "Run\/Walk",
+    "Goalball": "Goalball",
+    "Game Night": "Game Night",
+    "Health Check": "Health Check"
+  }
+
+  var name = contextTable[dbName];
+  if (name) {
+    return name;
   } else {
-    return null;
+    return 'Other';
   }
 };
 
@@ -158,7 +162,8 @@ function getMonthlyProgramming(relevantDate, done) {
   counts.totals.memphis = genCountsObject("Memphis");
 
   // Generate Counts For Individual Sports
-  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Run\/Walk', 'BR dancing', 'Golf', 'Kickball'];
+  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Run\/Walk', 'BR dancing', 'Golf', 'Kickball',
+                'Health Check', 'Other'];
   for (var i = 0; i < sports.length; i++) {
     counts.nashville[sports[i]] = genCountsObject(sports[i]);
     counts.memphis[sports[i]] = genCountsObject(sports[i]);
