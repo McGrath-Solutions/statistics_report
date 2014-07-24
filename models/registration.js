@@ -3,10 +3,9 @@
 // Imports
 var dbinfo = require('./databaseconfig');
 var knex = require('knex')(dbinfo);
-
 var bookshelf = require('bookshelf')(knex);
-
 var User = require('./user');
+
 function makeRegistration() {
 
   // Event Node base (to avoid circular references in the most minimalistic way posssible)
@@ -21,17 +20,23 @@ function makeRegistration() {
     event: function() {
       return this.belongsTo(EventNode, "entity_id");
     },
+    /* Deprecated
     type: function() {
       return this.hasOne(RegistrationType, "entity_id");
     },
     notes: function() {
       return this.hasOne(RegistrationNotes, "entity_id");
     },
+    */
+   
+   /*
     user: function() {
       return this.belongsTo(User, "user_uid");
     }
+    */
   });
 
+  /* Deprecated
   var RegistrationType = bookshelf.Model.extend({
     tableName: "field_data_field_registration_type"
   });
@@ -39,7 +44,7 @@ function makeRegistration() {
   var RegistrationNotes = bookshelf.Model.extend({
     tableName: "field_data_field_notes_and_accommodations"
   })
-
+  */
 
   // Registration Table in the database
   var Registration = function(initializationObject) {
@@ -51,14 +56,16 @@ function makeRegistration() {
     if (this.uid) this.isAnon = false;
     else this.isAnon = true;
     this.anonEmail = initializationObject.anonEmail;
-    this.type = initializationObject.type;
-    this.notes = initializationObject.notes;
+    // this.type = initializationObject.type;
+    // this.notes = initializationObject.notes;
   }
 
   // Registration database objects
   Registration.RegistrationNode = RegistrationNode;
+  /*
   Registration.RegistrationType = RegistrationType;
   Registration.RegistrationNotes = RegistrationNotes;
+  */
 
   /* Initialize a registration from a Bookshelf model */
   Registration.initFromDatabaseObject = function(model) {
@@ -72,8 +79,8 @@ function makeRegistration() {
     init.eventName = model.related('event').attributes.title;
     init.eventId = model.related('event').attributes.nid;
     init.anonEmail = model.attributes.anon_mail;
-    init.type = model.related('type').attributes.field_registration_type_value;
-    init.notes = model.related('notes').attributes.field_notes_and_accommodations_value;
+    // init.type = model.related('type').attributes.field_registration_type_value;
+    // init.notes = model.related('notes').attributes.field_notes_and_accommodations_value;
 
     init.user = model.related('user');
 
@@ -94,7 +101,7 @@ function makeRegistration() {
    * an event registration object such as type of registration etc.  */
   Registration.loadRegistrationById = function(id, callback) {
     new RegistrationNode({registration_id: id}).fetch({
-      withRelated: ['event', 'type', 'notes', 'user']
+      withRelated: ['event'/*, 'type', 'notes',, 'user'*/]
     })
     .then(function onSuccess(registration) {
       var object = Registration.initFromDatabaseObject(registration);
@@ -110,7 +117,7 @@ function makeRegistration() {
   Registration.loadObjects = function(callback) {
     // Potential bug: Loads all registrations. Potentially need a filter.
     new RegistrationNode().fetchAll({
-      withRelated: ['event', 'type', 'notes', 'user']
+      withRelated: ['event'/*, 'type', 'notes',, 'user'*/]
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];

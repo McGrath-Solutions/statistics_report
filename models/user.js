@@ -6,7 +6,7 @@ var Bookshelf = require('bookshelf')(knex);
 module.exports = (function() {
 
   var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
-    'firstName', 'lastName', 'phone'];
+    'firstName', 'lastName', 'phone', 'membershipType'];
 
   var User = Bookshelf.Model.extend({
     tableName: 'users',
@@ -31,6 +31,9 @@ module.exports = (function() {
     }, 
     phone: function() {
       return this.hasOne(UserPhone, 'entity_id');
+    },
+    membershipType: function() {
+      return this.hasOne(UserType, 'entity_id');
     }
   });
 
@@ -70,6 +73,7 @@ module.exports = (function() {
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
     obj.phone = model.related('phone').attributes.field_phone_value;
+    obj.membershipType = model.related('membershipType').attributes.field_membership_type_value;
     obj.pending = false;
 
     // console.log(model.related('roles').models);
@@ -211,7 +215,11 @@ module.exports = (function() {
       Bookshelf.Model.apply(this, arguments);
       this.query('where', 'entity_type', '=', 'user');
     }
-  })
+  });
+
+  var UserType = Bookshelf.Model.extend({
+    tableName: 'field_data_field_membership_type'
+  });
 
   var Role = Bookshelf.Model.extend({
     tableName: 'role'

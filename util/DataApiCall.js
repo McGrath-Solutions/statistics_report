@@ -70,7 +70,8 @@ var getAgeGroup = function(dateOfBirth) {
 function getMonthlyProgramming(relevantDate, done) {
   /* Helper functions */
   var genCountsObject = function(title) {
-    var obj = {name: title, activities: 0, hours: 0, juniors: 0, youth: 0, adults: 0, veterans: 0, volunteers: 0,
+    var obj = {name: title, activities: 0, hours: 0, juniors: 0, adults: 0, guests: 0,
+               veterans: 0, volunteers: 0,
                volunteerHours: 0};
 
     return obj;
@@ -126,8 +127,8 @@ function getMonthlyProgramming(relevantDate, done) {
   };
 
   /* Main program logic */
-  var labelsTotal = ["Clubs", "# of activities", "# of hours", "Juniors", "Youth", 
-                     "Adult", "Veterans", "# of Volunteer Staff",
+  var labelsTotal = ["Clubs", "# of activities", "# of hours", "Juniors",
+                     "Adult", "Veterans", "Guests", "# of Volunteer Staff",
                       "Volunteer Hours"];
   // The schema
   var schema = ["string", "number", "number", 
@@ -135,8 +136,8 @@ function getMonthlyProgramming(relevantDate, done) {
                 "number", "number"];
   
   // Labels for the monthly report per region
-  var labelsMonthly = ["Program", "# of activities", "# of hours", "Juniors", "Youth", "Adult", 
-                      "Veterans", "# of Volunteer Staff",
+  var labelsMonthly = ["Program", "# of activities", "# of hours", "Juniors", "Adult", 
+                      "Veterans", "Guests", "# of Volunteer Staff",
                       "Volunteer Hours"];
 
   // Tables
@@ -188,9 +189,11 @@ function getMonthlyProgramming(relevantDate, done) {
             var club = getClubNameInContext(object.club);
             var numHours = getDuration(object.start, object.end);
 
-            if (sport == undefined) {
-              // For now, an undefined sport is simply walk/run (By nature of the database schema)
-              sport = "Run\/Walk";
+            if (!sport) {
+              // An undefined sport means don't bother with this one, skip it and
+              // move on
+              continue;
+              // sport = "Run\/Walk";
             }
 
             // console.log(club);
@@ -256,6 +259,10 @@ function getMonthlyProgramming(relevantDate, done) {
                 // Process the given registration
                 //console.log("Registration checking");
                 //console.log(reg);
+                
+                /* Legacy volunteer check. New volunteer check moved down ot 
+                 * processRegistrationUsers below                              */
+                /*
                 if (registration.type === "Volunteer") {
                   // Incrment the number of volunteers, if applicable
                   counts.totals[reg.club].volunteers++;
@@ -265,6 +272,7 @@ function getMonthlyProgramming(relevantDate, done) {
                   counts.totals[reg.club].volunteerHours += reg.numHours;
                   counts[reg.club][reg.sport].volunteerHours += reg.numHours;
                 }
+                */
 
                 // Slyly insert more data for registration user data
                 registration.club = reg.club;
@@ -315,9 +323,31 @@ function getMonthlyProgramming(relevantDate, done) {
                     counts[registration.club][registration.sport].veterans++;
                   }
 
+                  var type = user.membershipType;
+                  if (type === "Volunteer") {
+                    // volunteer code
+                    // Incrment the number of volunteers, if applicable
+                    counts.totals[registration.club].volunteers++;
+                    counts[registration.club][registration.sport].volunteers++; 
+
+                    // This is probably not the right way to calculate volunteer hours
+                    counts.totals[registration.club].volunteerHours += registration.numHours;
+                    counts[registration.club][registration.sport].volunteerHours += registration.numHours;
+                  } else if (type === "Guest" || !type) {
+                    // By default, undefined users will be guests
+                    counts.totals[registration.club].guests++;
+                    counts[registration.club][registration.sport].guests++;
+                  } else {
+                    var ageGroup = type.toLowerCase() + "s";
+                    counts.totals[registration.club][ageGroup]++;
+                    counts[registration.club][registration.sport][ageGroup]++;
+                  }
+
+                  /* Legacy use age group calculation code
                   var userAgeGroup = getAgeGroup(user.dob);
                   counts.totals[registration.club][userAgeGroup]++;
                   counts[registration.club][registration.sport][userAgeGroup]++;
+                  */
 
                   cbinterior(null);
                 }
