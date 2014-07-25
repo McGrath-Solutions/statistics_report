@@ -2,7 +2,7 @@
 
 module.exports = function() {
     return function(req, res, next) {
-        if (req.isAuthenticated());
+        // Log the cookies to exp
         console.log(req.cookies);
 
         next();

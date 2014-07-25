@@ -9,6 +9,7 @@ var Bookshelf = require('bookshelf');
 var passport = require('passport');
 var messages = require('./util/messages');
 var auth = require('./util/authmiddleware');
+var sessionParser = require('./util/sessionparser');
 
 // routes
 var routes = require('./routes');
@@ -33,6 +34,7 @@ app.use(express.methodOverride());
 app.use(express.session({secret: "mysecret"}));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(sessionParser());
 app.use(flash());
 app.use(messages());
 app.use(auth());
