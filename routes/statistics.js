@@ -27,6 +27,8 @@ exports.upload = function(req, res) {
 exports.api = function(req, res) {
   if (!req.user) {
     res.send({needLogin: true});
+  } else if (!req.hasEditPermissions) {
+    res.send(403, {message: "Not Authorized"})
   } else {
     console.log(req.params.date);
     var type = req.params.type;

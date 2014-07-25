@@ -10,7 +10,11 @@ module.exports = function() {
 
     return function(req, res, next) {
         res.locals.isAuthenticated = req.isAuthenticated();
+
+        // Check if the user has the right to edit the page
+        req.hasEditPermissions = hasEditPermissions(req.user);
         res.locals.hasEditPermissions = hasEditPermissions(req.user);
         next();
     }
+
 }

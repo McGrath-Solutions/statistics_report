@@ -68,11 +68,15 @@ app.get('/stats', user.ensureAuthenticated, statistics.stats)
 // app.get('/stats', statistics.stats)
 
 // The following lines require authentication
-app.get('/stats/export', user.ensureAuthenticated, statistics.reports);
-app.get('/stats/import', user.ensureAuthenticated, statistics.upload);
-app.get('/download/:reportName', user.ensureAuthenticated, statistics.getReport);
+app.get('/stats/export', user.ensureAuthenticated, user.ensurePrivileged, statistics.reports);
+app.get('/stats/import', user.ensureAuthenticated, user.ensurePrivileged, statistics.upload);
 app.get('/api/:type/:date', statistics.api);
+
+// Routes Deprecated
+/*
 app.post('/generate', statistics.genReport);
+app.get('/download/:reportName', user.ensureAuthenticated, user.ensurePrivileged, statistics.getReport);
+*/
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

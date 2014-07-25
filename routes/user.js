@@ -50,3 +50,15 @@ exports.ensureAuthenticated = function(req, res, next) {
   res.redirect('/login');
 };
 
+/*
+ * Middleware to ensure that the user is both authenticated and has the appropriate
+ * edit permissions
+ */
+exports.ensurePrivileged = function(req, res, next) {
+  if (req.hasEditPermissions) {
+    return next();
+  }
+
+  res.flash('error', 'You do not have permssion to access this page');
+  res.redirect('/');
+}

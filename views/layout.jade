@@ -23,14 +23,16 @@ html
           ul.nav.navbar-nav
             - if (user) {
               li
-                a(href="/stats/users/#{user.attributes.uid}") #{user.attributes.name}'s Home
-              li 
-                a(href="/logout") Logout
+                a(href="/stats/users/#{user.attributes.uid}") #{user.attributes.name}
               li 
                 a(href="/stats") Statistics Panel
+              li
+                a(href="http://mcgrathsolutions.bitnamiapp.com/dev/tnaba-v2b") MyTNABA home
+              li 
+                a(href="/logout") Logout
             - } else {
               li
-                a(href="/") Home
+                a(href="http://mcgrathsolutions.bitnamiapp.com/dev/tnaba-v2b") MyTNABA home
               li
                 a(href="/login") Login
             - }
