@@ -50,6 +50,7 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
+// Passport local authentication strategy
 require('./util/auth')(passport)
 
 // Routes: 

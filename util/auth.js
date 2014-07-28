@@ -75,7 +75,7 @@ function checkDrupalPassword(passwordenc, password) {
 
   return output.substring(0, DRUPAL_HASH_SIZE) === passwordenc;
 }
-
+  
 // Modified passport strategy, built for drupal
 module.exports = function(passport) {
   passport.serializeUser(function(user, done) {
@@ -90,7 +90,7 @@ module.exports = function(passport) {
       });
   });
 
-  passport.use(new LocalStrategy(function(username, password, done) {
+  passport.use('loginpage', new LocalStrategy(function(username, password, done) {
     new user({name: username.toLowerCase().trim()}).fetch({require: true}).then(function(user) {
       var encryptedpass = user.get('pass');
       if (checkDrupalPassword(encryptedpass, password)) {

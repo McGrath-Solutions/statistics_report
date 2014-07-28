@@ -11,9 +11,9 @@ exports.login = function(req, res) {
  * credentials are good and grant permission if the right credentials are given.
  */
 exports.checkLogin = function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
+  passport.authenticate('loginpage', function(err, user, info) {
     if (err || !user) {
-      req.flash('username', req.body.username);
+      // req.flash('username', req.body.username);
       req.flash('error', info.message);
       return res.redirect('/login');
     }
