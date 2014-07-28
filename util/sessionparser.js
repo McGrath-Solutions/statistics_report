@@ -12,7 +12,7 @@ var getCookieInformation = function(cookies) {
   }
 
   return null;
-}
+};
 
 var ensureSessionActive = function(req, cookieId, callback) {
   var drupalSession = req.session.drupal;
@@ -33,7 +33,7 @@ var ensureSessionActive = function(req, cookieId, callback) {
   }
 
   callback();
-}
+};
 
 var logUserInUsingCookieId = function(req, cookieId, callback) {
   Session.fetchById(cookieId, function(err, object) {
@@ -86,7 +86,10 @@ module.exports = function() {
     if (cookieId) {
       logUserInUsingCookieId(req, cookieId, function() {
         next();
-      })
+      });
+      return;
     }
+
+    next();
   }
 }

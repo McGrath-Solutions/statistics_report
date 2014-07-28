@@ -33,7 +33,7 @@ module.exports = (function() {
    */
   Session.deleteById = function(id, callback) {
     new Session({sid: id}).fetch().then(function(model) {
-      model.destroy().then(function() {
+      model.where({sid: id}).destroy().then(function() {
         callback(null);
       }).catch(function(err) {
         callback(err);
