@@ -72,7 +72,7 @@ module.exports = function() {
 
     var cookieId = getCookieInformation(req.cookies);
     console.log("Got Id: " + cookieId);
-    if (req.isAuthenticated) {
+    if (req.isAuthenticated()) {
       // Check if the session is active, if it is not active,
       // log the user out
       ensureSessionActive(req, cookieId, function() {
