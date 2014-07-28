@@ -35,13 +35,15 @@ var ensureSessionActive = function(req, cookieId, callback) {
   callback();
 }
 
-var logUserInUsingCookieId = function(cookieId, callback) {
-  console.log("Attempting user login");
-  Session.fetchById(cookieId, function(object) {
-    var uid = object.uid;
-    console.log("Fetched session uid: " + uid);
-    new User({uid: uid}).fetch().then(function(model) {
-      console.log("Fetched User: " + model);
+var logUserInUsingCookieId = function(req, cookieId, callback) {
+  Session.fetchById(cookieId, function(err, object) {
+    console.log(object);
+    if (!object) {
+      console.log(object);
+      return callback();
+    }
+    var id = object.uid;
+    new User({uid: id}).fetch().then(function(model) {
       req.logIn(model, function(err) {
         if (err) {
           console.error(err);
@@ -82,7 +84,7 @@ module.exports = function() {
     }
 
     if (cookieId) {
-      logUserInUsingCookieId(cookieId, function() {
+      logUserInUsingCookieId(req, cookieId, function() {
         next();
       })
     }
