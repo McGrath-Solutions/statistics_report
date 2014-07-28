@@ -38,7 +38,7 @@ exports.logout = function(req, res) {
   req.logout();
   if (req.session.drupal) {
     var sid = req.session.drupal.sid;
-    session.deleteById(sid, function(err) {
+    Session.deleteById(sid, function(err) {
       if (err) {
         console.error(err);
       }
@@ -46,7 +46,7 @@ exports.logout = function(req, res) {
       req.session.drupal = {};
       req.flash('info', "You are now logged out");
       res.redirect('/');
-    })
+    });
 
     return;
   }
