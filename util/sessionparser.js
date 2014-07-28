@@ -37,9 +37,9 @@ var ensureSessionActive = function(req, cookieId, callback) {
 
 var logUserInUsingCookieId = function(req, cookieId, callback) {
   Session.fetchById(cookieId, function(err, object) {
-    console.log(object);
+    // console.log(object);
     if (!object) {
-      console.log(object);
+      // console.log(object);
       return callback();
     }
     var id = object.uid;
@@ -56,7 +56,7 @@ var logUserInUsingCookieId = function(req, cookieId, callback) {
         callback();
       });
     }).catch(function(err) {
-      console.error(err);
+      // console.error(err);
       callback();
     });
   });
@@ -66,14 +66,14 @@ var logUserInUsingCookieId = function(req, cookieId, callback) {
 module.exports = function() {
   return function(req, res, next) {
     // Log the cookies to exp
-    console.log("Cookies: ");
-    console.log(req.cookies);
+    // console.log("Cookies: ");
+    // console.log(req.cookies);
 
-    console.log("Session: ");
-    console.log(req.session);
+    // console.log("Session: ");
+    // console.log(req.session);
 
     var cookieId = getCookieInformation(req.cookies);
-    console.log("Got Id: " + cookieId);
+    // console.log("Got Id: " + cookieId);
     if (req.isAuthenticated()) {
       // Check if the session is active, if it is not active,
       // log the user out
