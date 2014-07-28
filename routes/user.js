@@ -1,4 +1,6 @@
 var passport = require('passport');
+var Session = require('../models/session');
+
 /*
  * GET the login page
  */
@@ -34,6 +36,21 @@ exports.checkLogin = function(req, res, next) {
  */
 exports.logout = function(req, res) {
   req.logout();
+  if (req.session.drupal) {
+    var sid = req.session.drupal.sid;
+    session.deleteById(sid, function(err) {
+      if (err) {
+        console.error(err);
+      }
+
+      req.session.drupal = {};
+      req.flash('info', "You are now logged out");
+      res.redirect('/');
+    })
+
+    return;
+  }
+
   req.flash('info', 'You are now logged out');
   res.redirect('/');
 };
