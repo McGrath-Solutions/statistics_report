@@ -38,8 +38,10 @@ var ensureSessionActive = function(req, cookieId, callback) {
 var logUserInUsingCookieId = function(cookieId, callback) {
   Session.fetchById(cookieId, function(object) {
     var uid = object.uid;
+    console.log("Fetched session uid: " + uid);
     new User({uid: uid}).fetch().then(function(model) {
-      req.logIn(user, function(err) {
+      console.log("Fetched User: " + model);
+      req.logIn(model, function(err) {
         if (err) {
           console.error(err);
           return callback();
