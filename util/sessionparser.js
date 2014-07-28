@@ -36,6 +36,7 @@ var ensureSessionActive = function(req, cookieId, callback) {
 }
 
 var logUserInUsingCookieId = function(cookieId, callback) {
+  console.log("Attempting user login");
   Session.fetchById(cookieId, function(object) {
     var uid = object.uid;
     console.log("Fetched session uid: " + uid);
@@ -49,6 +50,8 @@ var logUserInUsingCookieId = function(cookieId, callback) {
 
         req.session.drupal = {};
         req.session.drupal.sid = cookieId;
+
+        callback();
       });
     }).catch(function(err) {
       console.error(err);
