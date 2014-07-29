@@ -5,6 +5,12 @@ var Session = require('../models/session');
  * GET the login page
  */
 exports.login = function(req, res) {
+  if (process.env.NODE_ENV === 'production') {
+    var path = require('routeconfig').productionLoginURL;
+    return res.redirect(path);
+  }
+
+  // In production environment, redirect to login page
   res.render('login', {user: req.user});
 };
 
