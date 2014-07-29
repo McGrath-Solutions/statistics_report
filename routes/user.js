@@ -6,7 +6,7 @@ var Session = require('../models/session');
  */
 exports.login = function(req, res) {
   if (process.env.NODE_ENV === 'production') {
-    var path = require('routeconfig').productionLoginURL;
+    var path = require('./routeconfig').productionLoginURL;
     return res.redirect(path);
   }
 
