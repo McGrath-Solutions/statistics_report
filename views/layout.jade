@@ -23,7 +23,7 @@ html
           ul.nav.navbar-nav
             - if (user) {
               li
-                a(href="/stats/users/#{user.attributes.uid}") #{user.attributes.name}
+                a(href="/stats/users/#{user.id}") #{user.firstName}
               li 
                 a(href="/stats") Statistics Panel
               li

@@ -83,10 +83,12 @@ module.exports = function(passport) {
   });
 
   passport.deserializeUser(function(user_id, done) {
-      new user({uid: user_id}).fetch().then(function(user) {
-          return done(null, user);
-      }, function(error) {
-          return done(error);
+      user.getUserObjectById(user_id, function(err, user) {
+        if (err) {
+          return done(err);
+        }
+
+        return done(null, user);
       });
   });
 

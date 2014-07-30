@@ -4,6 +4,7 @@ var util = require('util');
 var fs = require('fs');
 var api = require('../util/DataApiCall');
 
+
 /* Helper functions */
 var getReportType = function(type) {
   if (type === "event") {
@@ -33,7 +34,7 @@ exports.api = function(req, res) {
     console.log(req.params.date);
     var type = req.params.type;
     var date = new Date(req.params.date);
-    var uid = req.user.attributes.uid;
+    var uid = req.user.id;
 
     console.log(type);
     console.log(date);
@@ -73,7 +74,7 @@ exports.genReport = function(req, res) {
   } else {
     var type = req.body.type;
     var date = new Date(req.body.dateFor);
-    var uid = req.user.attributes.uid;
+    var uid = req.user.id;
     if (!type) {
       res.send("Unknown type");
     } else {
@@ -113,7 +114,7 @@ exports.getReport = function(req, res) {
     res.send(403, "Not authorized");
   } else {
     // Send the file, then unlink it
-    var uid = user.attributes.uid;
+    var uid = req.user.id;
     var fullPathName = "./reports/" + uid + "/" + reportName;
     res.sendfile(fullPathName, function unlink(err) {
       if (err) {
@@ -142,19 +143,19 @@ exports.userpage = function(req, res) {
   // If the specified user does not exist, return error. 
   var user = require('../models/user');
 
-  // Do this task asynchronously through promises
-  new user({uid: uid}).fetch().then(function(user) {
-      console.log("User id: " + uid);
-      console.log(user); 
-      if (user) {
-        console.log("User name: " + user.attributes.name);
-        res.render('statsUserView', {userName: user.attributes.name,
-                                     user: req.user});
-      } else {
-        res.render('error');
-      }
-  }, function(error) {
+  user.getUserObjectById(uid, function(err, user) {
+    if (err) {
       res.render('error');
+      return;
+    }
+
+    console.log("User id: " + uid);
+    console.log(user);
+    if (user) {
+      console.log("User name: " + user.name);
+      res.render('statsUserView', {userName: user.firstName,
+                                   user: req.user});
+    }
   });
 
   // Get user statististics from a hypothetical statistics object
