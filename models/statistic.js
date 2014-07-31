@@ -17,24 +17,30 @@ module.exports = (function() {
   var TypeProperties = {
     'stats_goalball_tournament': {
       contains: ["goalballTeam"],
-    }
+      related: []
+    },
     'sports_statistic': {
+      contains: [],
       related: ["participant", "minutes", "hours", 
-                         "seconds", "distanceInMiles"],
-    }
+                         "seconds", "distanceInMiles"]
+    },
     'bowling_scores': {
-
+      contains: [],
+      related: []
     },
     'stats_goalball': {
-
+      contains: [],
+      related: []
     },
     'stats_health_check': {
-
+      contains: [],
+      related: []
     },
     'stats_cycling': {
-
+      contains: [],
+      related: []
     }
-  }
+  };
 
   // Property type information
   var STANDARD = 0; // Standard data property (postfixed by value)
@@ -45,8 +51,9 @@ module.exports = (function() {
     "hours": STANDARD,
     "seconds": STANDARD,
     "distanceInMiles": STANDARD
-  }
+  };
 
+  /* Table of property nodes */
   var PropertyTable = {
     "participant": Bookshelf.Model.extend({
       tableName: "field_data_field_participant"
@@ -65,9 +72,29 @@ module.exports = (function() {
     })
   };
 
+  /* Date fetch methods */
+  // Fetch a standard related property
+  var standardFetch = function(propertyName) {
+    return function(model) {
+      var propType = PropertyType[propertyName];
+      var drupalAttr = getDrupalColumnField(propertyName, propType);
+      return model.related(propertyName).attributes[drupalAttr];
+    }
+  };
+
+  // Table of methods containing a procedure describing how to fetch
+  // a given property from a statistic type
+  var PropertyFetchTable = {
+    "participant": standardFetch("participant"),
+    "minutes": standardFetch("minutes"),
+    "hours": standardFetch("hours"),
+    "seconds": standardFetch("seconds"),
+    "distanceInMiles": standardFetch("distanceInMiles")
+  };
+
   /* Generate a node for the given statistic */
   var getStatisticNode = function(statistic_name) {
-    var properties = TypeProperties[statistic_name];
+    var properties = TypeProperties[statistic_name].related;
     var ext = {};
 
     for (var i = 0; i < properties.length; i++) {
@@ -96,7 +123,7 @@ module.exports = (function() {
 
   var camelToUnderscore = function(camelInstance) {
     return camelInstance.replace(/[A-Z]/g, function($1) { return "_" + $1.toLowerCase(); });
-  }
+  };
 
   var getDrupalColumnField = function(property, propType) {
     if (propType == STANDARD) {
@@ -104,40 +131,37 @@ module.exports = (function() {
     } else {
       return 'field_' + camelToUnderscore(property) + "_target_id";
     }
-  }
-
+  };
 
   // Statistic object declaration
   function Statistic(type, initObject) {
     var entityType = TypeTable[type] || type; // User can input interface-type or regular type
-    var properties = TypeProperties[entityType];
+    var properties = TypeProperties[entityType].related;
 
     for (var i = 0; i < properties.length; i++) {
       var property = properties[i];
       this[property] = initObject[property];
     }
-  }
+  };
 
   Statistic.initFromDatabaseObject = function(type, model) {
-    console.log(model.relations.participant);
+    // console.log(model.relations.participant);
     var entityType = TypeTable[type] || type;
-    var related = TypeProperties[entityType];
+    var related = TypeProperties[entityType].related;
 
     var init = {};
     for (var i = 0; i < related.length; i++) {
       var prop = related[i];
-      var propType = PropertyType[prop];
-      var drupalAttr = getDrupalColumnField(prop, propType);
-      init[prop] = model.related(prop).attributes[drupalAttr];
+      init[prop] = PropertyFetchTable[prop](model);
     }
 
     return new Statistic(type, init);
-  }
+  };
 
   Statistic.loadObjects = function(type, callback) {
     var entityType = TypeTable[type] || type;
     var StatisticNode = getStatisticNode(entityType);
-    var related = TypeProperties[entityType];
+    var related = TypeProperties[entityType].related;
 
     //console.log(StatisticNode);
     //console.log("Right before fetch");
