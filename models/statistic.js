@@ -15,6 +15,7 @@
 var dbconfig = require('./databaseconfig');
 var knex = require('knex')(dbconfig);
 var Bookshelf = require('bookshelf')(knex);
+var async = require('async');
 
 module.exports = (function() {
   // ****************************** Helper Methods *********************************************
@@ -73,14 +74,15 @@ module.exports = (function() {
     'sports_statistic': {
       contains: [],
       containsRelated: [],
-      related: ["participant", "minutes", "hours", 
+      related: ["participant", "event", "minutes", "hours", 
                          "seconds", "distanceInMiles"],
       amount: {
         "participant": "one",
         "minutes": "one",
         "hours": "one",
         "seconds": "one",
-        "distanceInMiles": "one"
+        "distanceInMiles": "one",
+        "event": "one"
       }
     },
     'bowling_scores': {
@@ -124,7 +126,8 @@ module.exports = (function() {
     "hours": STANDARD,
     "seconds": STANDARD,
     "distanceInMiles": STANDARD,
-    "goalballTeam": CONTAINS
+    "goalballTeam": CONTAINS,
+    "event": EVENT_ID
   };
 
   /* Table of property Bookshelf models */
@@ -153,6 +156,9 @@ module.exports = (function() {
     }),
     "goalballTeamReference": Bookshelf.Model.extend({
       tableName: "field_data_field_team_statistics"
+    }),
+    "event": Bookshelf.Model.extend({
+      tableName: "field_data_field_event"
     })
   };
 
@@ -167,10 +173,12 @@ module.exports = (function() {
   };
 
   var goalballTeamFetch = function() {
-    return function(model) {
-      
+    return function(model, cb) {
+      // console.log(model.related('goalballTeamReference'));
+      console.log("Calling back with derp");
+      cb("derp");
     }
-  }
+  };
 
   // Table of methods containing a procedure describing how to fetch
   // a given property from a statistic type
@@ -180,7 +188,8 @@ module.exports = (function() {
     "hours": standardFetch("hours"),
     "seconds": standardFetch("seconds"),
     "distanceInMiles": standardFetch("distanceInMiles"),
-    "goalballTeam": function() {}
+    "event": standardFetch("event"),
+    "goalballTeam": goalballTeamFetch()
   };
 
   /********************************************************************************************
@@ -235,8 +244,10 @@ module.exports = (function() {
    ********************************************************************************************/
   function Statistic(type, initObject) {
     var entityType = TypeTable[type] || type; // User can input interface-type or regular type
-    var properties = TypeProperties[entityType].related;
+    var related = TypeProperties[entityType].related;
+    var contains = TypeProperties[entityType].contains;
 
+    var properties = related.concat(contains);
     for (var i = 0; i < properties.length; i++) {
       var property = properties[i];
       this[property] = initObject[property];
@@ -250,18 +261,45 @@ module.exports = (function() {
    * @returns {Object} A Statistic object with the attributes and related properties of model
    * (note: related properties as defined in the TypeProperties table)
    ********************************************************************************************/
-  Statistic.initFromDatabaseObject = function(type, model) {
+  Statistic.initFromDatabaseObject = function(type, model, callback) {
     // console.log(model.relations.participant);
     var entityType = TypeTable[type] || type;
     var related = TypeProperties[entityType].related;
+    var contains = TypeProperties[entityType].contains;
 
+    var properties = related.concat(contains);
+    var funcList = [];
     var init = {};
-    for (var i = 0; i < related.length; i++) {
-      var prop = related[i];
-      init[prop] = PropertyFetchTable[prop](model);
+    for (var i = 0; i < properties.length; i++) {
+      var prop = properties[i];
+      var func = PropertyFetchTable[prop];
+
+      if (func.length === 2) { // Function is asynchronous and expects callback
+        funcList[funcList.length] = (function(prop, func) {
+          return function(callback) {
+            func(model, function(result) {
+              init[prop] = result;
+              callback();
+            });
+          }
+        })(prop, func);
+      } else {
+        init[prop] = PropertyFetchTable[prop](model);
+      }
     }
 
-    return new Statistic(type, init);
+    // Done already if no asynchronous items
+    if (funcList.length === 0) return callback(null, new Statistic(type, init));
+
+    // Not done if adding asynchronous terms is necessary
+    async.parallel(funcList,
+      function(err) {
+        if (err) {
+          return callback(err);
+        }
+
+        return callback(null, new Statistic(type, init));
+      })
   };
 
   /********************************************************************************************
@@ -273,17 +311,40 @@ module.exports = (function() {
     var entityType = TypeTable[type] || type;
     var StatisticNode = getStatisticNode(entityType);
     var related = TypeProperties[entityType].related;
+    var containsRelated = TypeProperties[entityType].containsRelated;
 
+    // Concatenate all related properties
+    related = related.concat(containsRelated);
     new StatisticNode().fetchAll({
       withRelated: related
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];
+      var funcList = [];
       for (var i = 0; i < models.length; i++) {
-        objects.push(Statistic.initFromDatabaseObject(type, models[i]));
+
+        funcList[funcList.length] = (function(type, model) {
+          return function(callback) {
+            Statistic.initFromDatabaseObject(type, model, function(err, object) {
+              if (err) {
+                return callback(err);
+              }
+
+              objects.push(object);
+              return callback(null);
+            });
+          }
+        })(type, models[i]);
       }
 
-      callback(null, objects);
+      async.parallel(funcList, 
+        function(err) {
+          if (err) {
+            return callback(err);
+          }
+
+          return callback(null, objects);
+        })
     }).catch(function(err) {
       callback(err);
     });

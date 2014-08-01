@@ -1,7 +1,7 @@
 var Statistic = require('../models/statistic');
 var util = require('util');
 
-Statistic.loadObjects("sports_statistic", function(err, objects) {
+Statistic.loadObjects("Stats Achilles", function(err, objects) {
   if (err) {
     console.error(util.inspect(err));
   } else {
