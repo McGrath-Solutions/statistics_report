@@ -17,147 +17,7 @@ var knex = require('knex')(dbconfig);
 var Bookshelf = require('bookshelf')(knex);
 
 module.exports = (function() {
-
-  /* Translation from User Interface type (Displayed on the Drupal homepage) to Node Type
-   * Stored within the Node table of the Drupal database                                  */
-  var TypeTable = {
-    "Stats Achilles": "sports_statistic",
-    "Stats Cycling": "stats_cycling",
-    "Stats Bowling": "bowling_scores",
-    "Stats Health Check": "stats_health_check",
-    "Stats Goalball Tournament": "goalball_score_board",
-    "Stats Goalball": "stats_goalball"
-  }
-
-  /* List of properties for each statistic type. In general 'related' properties are Drupal field
-   * field properties stored in a field_data_field_(propertyName) table, while 'contains'properties
-   * are those properties that have their own Node type stored in Database (for instance, Goalball 
-   * Tournament statistics have an associated Goalball Team Node type                            */
-  var TypeProperties = {
-    'goalball_score_board': {
-      contains: ["goalballTeam"],
-      related: []
-    },
-    'sports_statistic': {
-      contains: [],
-      related: ["participant", "minutes", "hours", 
-                         "seconds", "distanceInMiles"]
-    },
-    'bowling_scores': {
-      contains: [],
-      related: []
-    },
-    'stats_goalball': {
-      contains: [],
-      related: []
-    },
-    'stats_health_check': {
-      contains: [],
-      related: []
-    },
-    'stats_cycling': {
-      contains: [],
-      related: []
-    }
-  };
-
-  /* The type of the property. As in, how the drupal database references the property 
-   * within the property's field table. STANDARD properties are properties that are
-   * stored in a database table with entry field_(nameOfProperty)_value. USER_ID
-   * are user references, EVENT_ID are event references, and CONTAINS are contains
-   * properties                                                                     */                   
-  var STANDARD = 0; // Standard data property (postfixed by value)
-  var USER_ID = 1;  // User id suffix
-  var EVENT_ID = 2; // Event reference
-  var CONTAINS = 3;
-  var PropertyType = {
-    "participant": USER_ID,
-    "minutes": STANDARD,
-    "hours": STANDARD,
-    "seconds": STANDARD,
-    "distanceInMiles": STANDARD
-  };
-
-  /* Table of property Bookshelf models */
-  var PropertyTable = {
-    "participant": Bookshelf.Model.extend({
-      tableName: "field_data_field_participant"
-    }),
-    "minutes": Bookshelf.Model.extend({
-      tableName: "field_data_field_minutes"
-    }),
-    "hours": Bookshelf.Model.extend({
-      tableName: "field_data_field_hours"
-    }),
-    "seconds": Bookshelf.Model.extend({
-      tableName: "field_data_field_seconds"
-    }),
-    "distanceInMiles": Bookshelf.Model.extend({
-      tableName: "field_data_field_distance_in_miles"
-    }),
-
-  };
-
-  /* Data fetch methods */
-  // Fetch a standard related property
-  var standardFetch = function(propertyName) {
-    return function(model) {
-      var propType = PropertyType[propertyName];
-      var drupalAttr = getDrupalColumnField(propertyName, propType);
-      return model.related(propertyName).attributes[drupalAttr];
-    }
-  };
-
-  var goalballTeamFetch = function() {
-    return function(model) {
-
-    }
-  }
-
-  // Table of methods containing a procedure describing how to fetch
-  // a given property from a statistic type
-  var PropertyFetchTable = {
-    "participant": standardFetch("participant"),
-    "minutes": standardFetch("minutes"),
-    "hours": standardFetch("hours"),
-    "seconds": standardFetch("seconds"),
-    "distanceInMiles": standardFetch("distanceInMiles"),
-    "goalballTeam": function() {}
-  };
-
-  /********************************************************************************************
-   * Fetch the Bookshelf object associated with the given statistic type
-   * @param {String} statistic_name - The name of the statistic type
-   * @return {Object} The Bookshelf object associated with the given statistic
-   ********************************************************************************************/
-  var getStatisticNode = function(statistic_name) {
-    var properties = TypeProperties[statistic_name].related;
-    var ext = {};
-
-    for (var i = 0; i < properties.length; i++) {
-      var property = properties[i];
-      var PropertyObject = PropertyTable[property];
-      ext[property] = (function(PropertyObject) {
-        return function() {
-          return this.hasOne(PropertyObject, "entity_id");
-        }
-      })(PropertyObject);
-    };
-
-    var model = Bookshelf.Model.extend({
-      tableName: "node",
-      constructor: function() {
-        Bookshelf.Model.apply(this, arguments);
-        this.query('where', 'type', '=', statistic_name);
-      },
-      idAttribute: "nid"
-    });
-
-    // A wee bit of a hack
-    model = model.extend(ext);
-    return model;
-  };
-
+  // ****************************** Helper Methods *********************************************
   /********************************************************************************************
    * Convert the given named instance in camelcase to underscore spacing convention
    * so thisIsAProperty becomses this_is_a_property
@@ -183,6 +43,190 @@ module.exports = (function() {
     }
   };
 
+  /* Translation from User Interface type (Displayed on the Drupal homepage) to Node Type
+   * Stored within the Node table of the Drupal database                                  */
+  var TypeTable = {
+    "Stats Achilles": "sports_statistic",
+    "Stats Cycling": "stats_cycling",
+    "Stats Bowling": "bowling_scores",
+    "Stats Health Check": "stats_health_check",
+    "Stats Goalball Tournament": "goalball_score_board",
+    "Stats Goalball": "stats_goalball"
+  }
+
+  // ****************************** Statistic Type information ***********************************
+  /* List of properties for each statistic type. In general 'related' properties are Drupal field
+   * field properties stored in a field_data_field_(propertyName) table,  'contains' properties
+   * are those properties that have their own Node type stored in Database (for instance, Goalball 
+   * Tournament statistics have an associated Goalball Team Node type, and 'containsRelated' 
+   * properties are related properties that reference the node ID of a contains property*/
+  var TypeProperties = {
+    'goalball_score_board': {
+      contains: ["goalballTeam"],
+      containsRelated: ["goalballTeamReference"],
+      related: [],
+      amount: {
+        "goalballTeam": "many",
+        "goalballTeamReference": "many"
+      }
+    },
+    'sports_statistic': {
+      contains: [],
+      containsRelated: [],
+      related: ["participant", "minutes", "hours", 
+                         "seconds", "distanceInMiles"],
+      amount: {
+        "participant": "one",
+        "minutes": "one",
+        "hours": "one",
+        "seconds": "one",
+        "distanceInMiles": "one"
+      }
+    },
+    'bowling_scores': {
+      contains: [],
+      containsRelated: [],
+      related: [],
+      amount: {}
+    },
+    'stats_goalball': {
+      contains: [],
+      containsRelated: [],
+      related: [],
+      amount: {}
+    },
+    'stats_health_check': {
+      contains: [],
+      containsRelated: [],
+      related: [],
+      amount: {}
+    },
+    'stats_cycling': {
+      contains: [],
+      containsRelated: [],
+      related: [],
+      amount: {}
+    }
+  };
+
+  /* The type of the property. As in, how the drupal database references the property 
+   * within the property's field table. STANDARD properties are properties that are
+   * stored in a database table with entry field_(nameOfProperty)_value. USER_ID
+   * are user references, EVENT_ID are event references, and CONTAINS are contains
+   * properties                                                                     */                   
+  var STANDARD = 0; // Standard data property (postfixed by value)
+  var USER_ID = 1;  // User id suffix
+  var EVENT_ID = 2; // Event reference
+  var CONTAINS = 3;
+  var PropertyType = {
+    "participant": USER_ID,
+    "minutes": STANDARD,
+    "hours": STANDARD,
+    "seconds": STANDARD,
+    "distanceInMiles": STANDARD,
+    "goalballTeam": CONTAINS
+  };
+
+  /* Table of property Bookshelf models */
+  var PropertyTable = {
+    "participant": Bookshelf.Model.extend({
+      tableName: "field_data_field_participant"
+    }),
+    "minutes": Bookshelf.Model.extend({
+      tableName: "field_data_field_minutes"
+    }),
+    "hours": Bookshelf.Model.extend({
+      tableName: "field_data_field_hours"
+    }),
+    "seconds": Bookshelf.Model.extend({
+      tableName: "field_data_field_seconds"
+    }),
+    "distanceInMiles": Bookshelf.Model.extend({
+      tableName: "field_data_field_distance_in_miles"
+    }),
+    "goalballTeam": Bookshelf.Model.extend({
+      tableName: "node",
+      constructor: function() {
+        Bookshelf.Model.apply(this, arguments);
+        this.query('where', 'type', '=', 'goalball_team')
+      }
+    }),
+    "goalballTeamReference": Bookshelf.Model.extend({
+      tableName: "field_data_field_team_statistics"
+    })
+  };
+
+  /* Data fetch methods */
+  // Fetch a standard related property
+  var standardFetch = function(propertyName) {
+    return function(model) {
+      var propType = PropertyType[propertyName];
+      var drupalAttr = getDrupalColumnField(propertyName, propType);
+      return model.related(propertyName).attributes[drupalAttr];
+    }
+  };
+
+  var goalballTeamFetch = function() {
+    return function(model) {
+      
+    }
+  }
+
+  // Table of methods containing a procedure describing how to fetch
+  // a given property from a statistic type
+  var PropertyFetchTable = {
+    "participant": standardFetch("participant"),
+    "minutes": standardFetch("minutes"),
+    "hours": standardFetch("hours"),
+    "seconds": standardFetch("seconds"),
+    "distanceInMiles": standardFetch("distanceInMiles"),
+    "goalballTeam": function() {}
+  };
+
+  /********************************************************************************************
+   * Fetch the Bookshelf object associated with the given statistic type
+   * @param {String} statistic_name - The name of the statistic type
+   * @return {Object} The Bookshelf object associated with the given statistic
+   ********************************************************************************************/
+  var getStatisticNode = function(statistic_name) {
+    var related = TypeProperties[statistic_name].related;
+    var containsRelated = TypeProperties[statistic_name].containsRelated;
+    var properties = related.concat(containsRelated);
+    var amount = TypeProperties[statistic_name].amount;
+    var ext = {};
+
+    for (var i = 0; i < properties.length; i++) {
+      var property = properties[i];
+      var PropertyObject = PropertyTable[property];
+      var funcName = 
+      ext[property] = (function(PropertyObject, property) {
+        if (amount[property] === "one")
+          return function() {
+            return this.hasOne(PropertyObject, "entity_id");
+          }
+        else if (amount[property] === "many") {
+          return function() {
+            return this.hasMany(PropertyObject, "entity_id");
+          }
+        }
+      })(PropertyObject, property);
+    }
+
+    var model = Bookshelf.Model.extend({
+      tableName: "node",
+      constructor: function() {
+        Bookshelf.Model.apply(this, arguments);
+        this.query('where', 'type', '=', statistic_name);
+      },
+      idAttribute: "nid"
+    });
+
+    model = model.extend(ext);
+    return model;
+  };
+
+
+  // **************************** Statistic Object Methods ************************************
   /********************************************************************************************
    * Statistic type constructor
    * @param {String} type - The name of the type of the statistic
