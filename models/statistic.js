@@ -17,6 +17,9 @@ var knex = require('knex')(dbconfig);
 var Bookshelf = require('bookshelf')(knex);
 var async = require('async');
 
+// Models
+var Event = require('./event');
+
 module.exports = (function() {
   // ****************************** Helper Methods *********************************************
   /********************************************************************************************
@@ -65,10 +68,11 @@ module.exports = (function() {
     'goalball_score_board': {
       contains: ["goalballTeam"],
       containsRelated: ["goalballTeamReference"],
-      related: [],
+      related: ["event"],
       amount: {
         "goalballTeam": "many",
-        "goalballTeamReference": "many"
+        "goalballTeamReference": "many",
+        "event": "one"
       }
     },
     'sports_statistic': {
@@ -172,11 +176,23 @@ module.exports = (function() {
     }
   };
 
+  var eventFetch = function() {
+    return function(model, cb) {
+      var drupalAttr = getDrupalColumnField("event", EVENT_ID);
+      var id = model.related('event').attributes[drupalAttr];
+      Event.loadEventObjectById(id, cb);
+    }
+  }
+
   var goalballTeamFetch = function() {
     return function(model, cb) {
-      // console.log(model.related('goalballTeamReference'));
-      console.log("Calling back with derp");
-      cb("derp");
+      console.log("This Model: ");
+      console.log(model);
+      var result = [];
+      var models = model.related('goalballTeamReference').models
+      // console.log(models);
+
+      cb(null, "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]);
     }
   };
 
@@ -277,9 +293,9 @@ module.exports = (function() {
       if (func.length === 2) { // Function is asynchronous and expects callback
         funcList[funcList.length] = (function(prop, func) {
           return function(callback) {
-            func(model, function(result) {
+            func(model, function(err, result) {
               init[prop] = result;
-              callback();
+              callback(err);
             });
           }
         })(prop, func);

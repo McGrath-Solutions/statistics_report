@@ -215,7 +215,19 @@ function makeEvent() {
       }
       callback(null, relevantObjs);
     });
-  }
+  };
+
+  Event.loadEventObjectById = function(id, callback) {
+    new EventNode({nid: id}).fetch({
+      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
+      'sportsClub', 'users']
+    }).then(function(model) {
+      var object = Event.initFromDatabaseObject(model);
+      callback(null, object);
+    }).catch(function(err) {
+      callback(err);
+    });
+  };
 
   // Load an array of every single Event object in database and call callback with that array. 
   // Currently takes a callback function.
@@ -238,6 +250,6 @@ function makeEvent() {
   }
 
   return Event;
-}
+};
 
 module.exports = makeEvent();
