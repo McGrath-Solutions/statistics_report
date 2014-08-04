@@ -68,8 +68,9 @@ module.exports = (function() {
     'goalball_score_board': {
       contains: ["goalballTeam"],
       containsRelated: ["goalballTeamReference"],
-      related: ["event"],
+      related: ["round", "event"],
       amount: {
+        "round": "one",
         "goalballTeam": "many",
         "goalballTeamReference": "many",
         "event": "one"
@@ -125,6 +126,7 @@ module.exports = (function() {
   var EVENT_ID = 2; // Event reference
   var CONTAINS = 3;
   var PropertyType = {
+    "round": STANDARD,
     "participant": USER_ID,
     "minutes": STANDARD,
     "hours": STANDARD,
@@ -163,6 +165,9 @@ module.exports = (function() {
     }),
     "event": Bookshelf.Model.extend({
       tableName: "field_data_field_event"
+    }),
+    "round": Bookshelf.Model.extend({
+      tableName: "field_data_field_round"
     })
   };
 
@@ -172,6 +177,7 @@ module.exports = (function() {
     return function(model) {
       var propType = PropertyType[propertyName];
       var drupalAttr = getDrupalColumnField(propertyName, propType);
+      console.log(drupalAttr);
       return model.related(propertyName).attributes[drupalAttr];
     }
   };
@@ -186,13 +192,87 @@ module.exports = (function() {
 
   var goalballTeamFetch = function() {
     return function(model, cb) {
-      console.log("This Model: ");
-      console.log(model);
-      var result = [];
-      var models = model.related('goalballTeamReference').models
-      // console.log(models);
+      var TeamName = Bookshelf.Model.extend({
+        tableName: "field_data_field_team_name"
+      });
 
-      cb(null, "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]);
+      var Scores = Bookshelf.Model.extend({
+        tableName: "field_data_field_scores"
+      });
+
+      var Throws = Bookshelf.Model.extend({
+        tableName: "field_data_field_throws"
+      });
+
+      var GoalballTeam = PropertyTable["goalballTeam"];
+      
+      var models = model.related('goalballTeamReference').models;
+      var funcList = [];
+      var result = [];
+
+      for (var i = 0; i < models.length; i++) {
+        result[i] = {};
+      }
+
+      for (var i = 0; i < models.length; i++) {
+        var cur = models[i];
+        var id = cur.attributes.field_team_statistics_value;
+
+        // Fetch teamName data
+        funcList[funcList.length] = (function(modelNum, id) {
+          return function(callback) {
+            new TeamName({entity_id: id}).fetch().then(function(model) {
+              var teamId = model.attributes.field_team_name_target_id;
+              new GoalballTeam({nid: teamId}).fetch().then(function(model) {
+                result[modelNum].teamName = model.attributes.title;
+
+                console.log("Team name callback");
+                return callback(null);
+              }).catch(function(err) {
+
+                console.log("Team name inner error");
+                console.error(err);
+                return callback(err);
+              });
+            }).catch(function(err) {
+              console.log("Team name outer error");
+              return callback(err);
+            });
+          };
+        })(i, id);
+
+        // Fetch Scores data
+        funcList[funcList.length] = (function(modelNum, id) {
+          return function(callback) {
+            new Scores({entity_id: id}).fetch().then(function(model) {
+              result[modelNum].scores = model.attributes.field_scores_value;
+              return callback(null);
+            }).catch(function(err) {
+              return callback(err);
+            });
+          }
+        })(i, id);
+
+        // Fetch throws data
+        funcList[funcList.length] = (function(modelNum, id) {
+          return function(callback) {
+            new Throws({entity_id: id}).fetch().then(function(model) {
+              result[modelNum].throws = model.attributes.field_throws_value;
+              return callback(null);
+            }).catch(function(err) {
+              return callback(err);
+            });
+          }
+        })(i, id);
+      }
+
+      async.parallel(funcList, function(err) {
+        if (err) {
+          return cb(err);
+        }
+
+        cb(null, result);
+      })
     }
   };
 
@@ -205,6 +285,7 @@ module.exports = (function() {
     "seconds": standardFetch("seconds"),
     "distanceInMiles": standardFetch("distanceInMiles"),
     "event": standardFetch("event"),
+    "round": standardFetch("round"),
     "goalballTeam": goalballTeamFetch()
   };
 

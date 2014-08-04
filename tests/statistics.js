@@ -7,5 +7,7 @@ Statistic.loadObjects("Stats Goalball Tournament", function(err, objects) {
   } else {
     console.log("Success");
     console.log(objects);
+    console.log(objects[0].goalballTeam);
+    console.log(objects[1].goalballTeam);
   }
 });
