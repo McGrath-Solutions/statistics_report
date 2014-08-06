@@ -5,7 +5,7 @@ module.exports = function() {
     var hasEditPermissions = function(user, cb) {
         // For now, only admin can edit. Will modifify with permissions later
         var editableRoles = ["administrator", "board_member", "officer", 
-                             "executive director"];
+                             "executive director", "coordinator"];
         if (!user) return false;
 
         // Check if the user has a role in editableRoles

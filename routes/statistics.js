@@ -12,59 +12,87 @@ var getReportType = function(type) {
   } else if (type === "membership") {
     return "Monthly Membership Report";
   }
-}
+};
+
+var hasViewPermissions = function(reportType, roles) {
+  console.log("User is seeking: " + reportType);
+  console.log("User has roles: " + roles);
+
+  // The highest privileged class of user
+  var highPrivilegeRoles = ["administrator", "board_member", "officer", 
+                           "executive director"];
+
+  if (reportType === "Monthly Programming Report") {
+    // Assuming the user canEdit
+    return true;
+  } else if (reportType === "Monthly Membership Report") {
+
+    for (var i = 0; i < roles.length; i++) {
+      var role = highPrivilegeRoles[i];
+      if (roles.indexOf(role) != -1) return true;
+    }
+
+    return false;
+  }
+};
 
 /* Default statistics page */
 exports.stats = function(req, res) {
   res.render('stats', {user: req.user});
-}
+};
 
 // Accept user uploads of xls, csv based reports files
 exports.upload = function(req, res) {
   res.render('import', {user: req.user});
-}
+};
 
 // Send back data relating to a specific report
 exports.api = function(req, res) {
+  // User must be logged in
   if (!req.user) {
-    res.send({needLogin: true});
+    return res.send({needLogin: true});
   } else if (!req.hasEditPermissions) {
-    res.send(403, {message: "Not Authorized"})
+    // User must have permission to edit
+    return res.send(403, {message: "Not Authorized"});
+  } 
+
+  console.log(req.params.date);
+  var type = req.params.type;
+  var date = new Date(req.params.date);
+  var uid = req.user.id;
+
+  // console.log(type);
+  // console.log(date);
+  // console.log(uid);
+  if (!type) {
+    return res.send("Unknown type");
   } else {
-    console.log(req.params.date);
-    var type = req.params.type;
-    var date = new Date(req.params.date);
-    var uid = req.user.id;
+    var reportType = getReportType(type);
 
-    console.log(type);
-    console.log(date);
-    console.log(uid);
-    if (!type) {
-      res.send("Unknown type");
-    } else {
-      var reportType = getReportType(type);
-
-      // Check if the date is valid. If it is not, return today.
-      if (isNaN(date.getTime())) {
-        date = new Date();
-      }
-
-      api(reportType, date, function(err, data) {
-        if (err) {
-          res.send("Error: " + err);
-        } else {
-          res.send(data);
-        }
-      });
+    if (!hasViewPermissions(reportType, req.user.roles)) {
+      return res.send(403, {message: "Not Authorized"});
     }
+
+    // Check if the date is valid. If it is not, return today.
+    if (isNaN(date.getTime())) {
+      date = new Date();
+    }
+
+    api(reportType, date, function(err, data) {
+      if (err) {
+        return res.send("Error: " + err);
+      } else {
+        return res.send(data);
+      }
+    });
   }
-}
+};
 
 // Page to export reports as csv files
 exports.reports = function(req, res) {
   
   res.render('export', {user: req.user});
-}
+};
 
 // Respond to post requests asking for a reports file with a reports file
 exports.genReport = function(req, res) {
@@ -102,7 +130,7 @@ exports.genReport = function(req, res) {
       });
     };
   }
-}
+};
 
 // Respond to get request for a file download
 // given params = :filename
@@ -129,7 +157,7 @@ exports.getReport = function(req, res) {
       }
     });
   }
-}
+};
   
 
 /* Access the statistics page for a given user, given params =  :uid */
@@ -160,5 +188,5 @@ exports.userpage = function(req, res) {
 
   // Get user statististics from a hypothetical statistics object
   // And render them as a page
-}
+};
 
