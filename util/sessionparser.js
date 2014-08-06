@@ -44,7 +44,8 @@ var logUserInUsingCookieId = function(req, cookieId, callback) {
     }
     var id = object.uid;
     new User({uid: id}).fetch().then(function(model) {
-      req.logIn(model, function(err) {
+      var user = User.initFromDatabaseObject(model);
+      req.logIn(user, function(err) {
         if (err) {
           console.error(err);
           return callback();
