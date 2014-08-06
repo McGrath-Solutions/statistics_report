@@ -79,7 +79,7 @@ function checkDrupalPassword(passwordenc, password) {
 // Modified passport strategy, built for drupal
 module.exports = function(passport) {
   passport.serializeUser(function(user, done) {
-    done(null, user.attributes.uid);
+    done(null, user.attributes.uid || user.uid);
   });
 
   passport.deserializeUser(function(user_id, done) {
