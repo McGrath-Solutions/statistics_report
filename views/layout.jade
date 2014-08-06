@@ -18,14 +18,14 @@ html
             span(class="sr-only") Toggle navigation
             span(class="icon-bar")
             span(class="icon-bar")
-          a.navbar-brand(href="/") Statistics Manager
+          a.navbar-brand(href="/") Reports Generator
         .collapse.navbar-collapse
           ul.nav.navbar-nav
             - if (user) {
               li
                 a(href="/stats/users/#{user.id}") #{user.firstName}
               li 
-                a(href="/stats") Statistics Panel
+                a(href="/stats") Reports Panel
               li
                 a(href="http://mcgrathsolutions.bitnamiapp.com/dev/tnaba-v2b") MyTNABA home
               li 
