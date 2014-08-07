@@ -331,6 +331,7 @@ function getMonthlyProgramming(relevantDate, done) {
                     counts[registration.club][registration.sport].veterans++;
                   }
 
+                  /*
                   var type = user.membershipType;
                   if (type === "Volunteer") {
                     // volunteer code
@@ -350,12 +351,25 @@ function getMonthlyProgramming(relevantDate, done) {
                     counts.totals[registration.club][ageGroup]++;
                     counts[registration.club][registration.sport][ageGroup]++;
                   }
+                  */
+                   
+                  var roles = user.roles;
+                  for (var i = 0; i < roles.length; i++) {
+                    if (roles[i] === "volunteer") {
+                      // Incrment the number of volunteers, if applicable
+                      counts.totals[registration.club].volunteers++;
+                      counts[registration.club][registration.sport].volunteers++; 
 
-                  /* Legacy use age group calculation code
+                      // This is probably not the right way to calculate volunteer hours
+                      counts.totals[registration.club].volunteerHours += registration.numHours;
+                      counts[registration.club][registration.sport].volunteerHours += registration.numHours;
+                      break;
+                    }
+                  }
+
                   var userAgeGroup = getAgeGroup(user.dob);
                   counts.totals[registration.club][userAgeGroup]++;
                   counts[registration.club][registration.sport][userAgeGroup]++;
-                  */
 
                   cbinterior(null);
                 }
