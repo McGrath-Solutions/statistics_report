@@ -572,7 +572,7 @@ function getMonthlyMembership(relevantDate, done) {
       var data = {
         sheet1: {
           name: "TNABA Monthly Membership Data",
-          data: [OverallCount, NewMemberSummary, GenderBreakdown, AgeBreakdown, StatusBreakdown]
+          data: [GenderBreakdown, AgeBreakdown, StatusBreakdown, NewMemberSummary, OverallCount]
         }
       };
 
