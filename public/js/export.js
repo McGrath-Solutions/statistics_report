@@ -46,7 +46,6 @@ function($, ReportsGenerator) {
     };
 
     var translateSchemaInstance = function(instance) {
-      console.log(instance);
       if (instance === "number") {
         return Number;
       } else if (instance === "date") {
@@ -60,33 +59,43 @@ function($, ReportsGenerator) {
 
     var translateSchema = function(schema) {
       var newSchema = [];
-      console.log(schema);
-      for (var i = 0; i < schema.length; i++) {
-        newSchema[i] = translateSchemaInstance(schema[i]);
+      for (var count = 0; count < schema.length; count++) {
+        newSchema[count] = translateSchemaInstance(schema[count]);
       }
 
       return newSchema;
     }
 
     var loadFromAPIObject = function(res) {
-      var reportObject = {
-        sheet1: {
-          name: res.sheet1.name
+      var keys = Object.keys(res);
+      var reportObject = {};
+
+      var firstSheetKey = keys[0];
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        reportObject[key] = {};
+        reportObject[key].name = res[key].name;
+      }
+
+      reportObject[firstSheetKey].information = {};
+      reportObject[firstSheetKey].information.Generated = new Date();
+      reportObject[firstSheetKey].information.Month = Number(monthSelected + 1) + "/" + yearSelected;
+
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        reportObject[key].data = [];
+
+        var resData = res[key].data;
+        for (var j = 0; j < resData.length; j++) {
+          var translatedSchema = translateSchema(resData[j].schema);
+
+          resData[j].schema = translatedSchema;
+          console.log("Res Data: ");
+          console.log(resData[i]);
+          reportObject[key].data[j] = ReportsGenerator.Table.initializeFromTable(resData[j]);
         }
       }
 
-      reportObject.sheet1.information = {};
-      reportObject.sheet1.information.Generated = new Date();
-      reportObject.sheet1.information.Month = Number(monthSelected + 1) + "/" + yearSelected;
-      reportObject.sheet1.data = [];
-
-      var resData = res.sheet1.data;
-      for (var i = 0; i < resData.length; i++) {
-        resData[i].schema = translateSchema(resData[i].schema);
-        reportObject.sheet1.data[i] = ReportsGenerator.Table.initializeFromTable(resData[i]);
-      }
-
-      console.log(reportObject.sheet1.data);
 
       return reportObject;
     };
