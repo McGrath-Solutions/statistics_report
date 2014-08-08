@@ -437,45 +437,103 @@ function getMonthlyMembership(relevantDate, done) {
   var statusBreakdownLabels = ["Pending", "Active", "InActive", "Suspended"];
   var statusBreakdownSchema = ["number", "number", "number", "number"];
 
-  // Table definitions
-  var NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
-  var OverallCount = new xls.Table("Overall Members", overallSchema, overallLabels);
-  var GenderBreakdown = new xls.Table("Gender Breakdown", genderBreakdownSchema, genderBreakdownLabels);
-  var AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
-  var StatusBreakdown = new xls.Table("Member Status Breakdown", statusBreakdownSchema, statusBreakdownLabels);
+  var veteranBreakdownLabels = ["Total", "Disabled", "Active", "Retired"];
+  var veteranBreakdownSchema = ["number", "number", "number", "number"];
+
+  /* Helpers */
+  function createMembershipInfoTables() {
+    var obj = {};
+    // Table definitions
+    obj.NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
+    obj.OverallCount = new xls.Table("Overall Members", overallSchema, overallLabels);
+    obj.GenderBreakdown = new xls.Table("Gender Breakdown", genderBreakdownSchema, genderBreakdownLabels);
+    obj.AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
+    obj.StatusBreakdown = new xls.Table("Member Status Breakdown", statusBreakdownSchema, statusBreakdownLabels);
+    obj.VeteranBreakdown = new xls.Table("Veteran Status", veteranBreakdownSchema, veteranBreakdownLabels);
+
+    return obj;
+  }
+
+  function yankDataArrayFromTable(clubName) {
+    var desired = tables[clubName];
+    return [desired.GenderBreakdown, desired.AgeBreakdown, desired.StatusBreakdown, 
+              desired.VeteranBreakdown, desired.NewMemberSummary, desired.OverallCount];
+  } 
+
+
+  var tables = {
+    "statewide": createMembershipInfoTables(),
+    "nashville": createMembershipInfoTables(),
+    "memphis": createMembershipInfoTables()
+  };
 
   async.parallel([
     // Load user information
-    function fetchMonthlyInformation(callback) {
+    function fetchInformationAboutUsersAddedThisMonth(callback) {
       // Fetch all users in the specified month and populate information
       
       User.loadUsersByCreatedMonth(relevantDate, function(err, objects) {
         if (err) {
-          callback(err);
-          return;
-        } else {
-          var numUsers = objects.length;
-          for (var i = 0; i < numUsers; i++) {
-            var user = objects[i];
-            var id = user.id || 0;
-            var lastName = user.lastName || "unknown";
-            var firstName = user.firstName || "unknown";
-            var email = user.email || "unknown";
-            var phone = user.phone || "unknown";
-            var roles = user.roles.join() || "unknown";
+          return callback(err);
+        } 
 
-            var newRow = [id, lastName, firstName, email, phone, roles];
-            NewMemberSummary.pushRow(newRow);
-          }
+        var numUsers = objects.length;
+        var monthlyTotals = {
+          statewide: 0,
+          nashville: 0,
+          memphis: 0
+        };
 
-          callback(null, numUsers);
+        for (var i = 0; i < numUsers; i++) {
+          var user = objects[i];
+          var id = user.id || 0;
+          var lastName = user.lastName || "unknown";
+          var firstName = user.firstName || "unknown";
+          var email = user.email || "unknown";
+          var phone = user.phone || "unknown";
+          var roles = user.roles.join() || "unknown";
+          var sportsClub = getClubNameInContext(user.sportsClub);
+
+          var newRow = [id, lastName, firstName, email, phone, roles];
+
+          tables[sportsClub].NewMemberSummary.pushRow(newRow);
+          monthlyTotals[sportsClub]++;
         }
+
+        callback(null, monthlyTotals);
       });
     },
-    function fetchOverallInformation(callback) {
+    function fetchInformationAboutEveryUser(callback) {
+      /*
       var genderCounts = [0, 0]; // Counts for males and females
       var ageCounts = [0, 0, 0]; // Counts for Junior, Youth and Adult
       var statusCounts = [0, 0, 0, 0]; // Counts of user status
+      var veteranCounts = [0, 0, 0, 0]; // Counts of veterans
+      */
+
+      function genCounts(len) {
+        return {
+          nashville: Array.apply(null, new Array(len)).map(Number.prototype.valueOf, 0),
+          memphis: Array.apply(null, new Array(len)).map(Number.prototype.valueOf, 0),
+          statewide: Array.apply(null, new Array(len)).map(Number.prototype.valueOf, 0)
+        }
+      }
+
+      // Counts of gender information for GenderBreakdown table
+      var genderLen = genderBreakdownSchema.length;
+      var genderCountsArrays = genCounts(genderLen);
+
+      // Counts of age information for AgeBreaddown table
+      var ageLen = ageBreakdownSchema.length;
+      var ageCountsArrays = genCounts(ageLen);
+
+      // Counts of status information for StatusBreakdown table
+      var statusLen = statusBreakdownSchema.length;
+      var statusCountsArrays = genCounts(statusLen);
+
+      // Counts of veteran information for VeteranBreakdown
+      var veteranLen = veteranBreakdownSchema.length;
+      var veteranCountsArrays = genCounts(veteranLen);
 
       User.loadObjects(function(err, objects) {
         if (err) {
@@ -483,81 +541,138 @@ function getMonthlyMembership(relevantDate, done) {
           console.error(err);
           callback(err);
           return;
-        } else {
-          console.log("Objects: ");
-          console.log(objects);
+        } 
 
-          var numUsers = objects.length;
-          for (var i = 0; i < numUsers; i++) {
-            var user = objects[i];
-            console.log(user);
+        /*
+        console.log("Objects: ");
+        console.log(objects);
+        */
 
-            var gender = user.gender || "Unknown";
-            if (gender === "Male") {
-              genderCounts[0]++;
-            } else if (gender === "Female") {
-              genderCounts[1]++;
-            }
+        var numUsers = objects.length;
+        var overallTotals = {
+          statewide: 0,
+          nashville: 0,
+          memphis: 0
+        };
 
-            var birthDate = user.dob;
-            if (birthDate) {
-              var ageGroup = getAgeGroup(birthDate);
-              // console.log("Got age group: " + ageGroup);
-              if (ageGroup === "juniors") {
-                //console.log("Inc junior");
-                ageCounts[0]++;
-              } else if (ageGroup === "youth") {
-                //console.log("Inc Youth");
-                ageCounts[1]++;
-              } else if (ageGroup === "adults") {
-                //console.log("Inc Adult");
-                ageCounts[2]++;
-              }
-            }
+        for (var i = 0; i < numUsers; i++) {
+          var user = objects[i];
+          var sportsClub = getClubNameInContext(user.sportsClub);
+          overallTotals[sportsClub]++;
 
-            // Possible Status: "Pending", "Active", "InActive", "Suspended"
-            // Check if the user is pending
-            if (user.pending) {
-              statusCounts[0]++;
-            }
+          /*
+          console.log(user);
+          console.log(sportsClub);
+          */
 
-            // Check if the user is active
-            if (user.active) {
-              statusCounts[1]++;
-            } else {
-              statusCounts[2]++;
-            }
+          var genderCounts = genderCountsArrays[sportsClub];
+          var ageCounts = ageCountsArrays[sportsClub];
+          var statusCounts = statusCountsArrays[sportsClub];
+          var veteranCounts = veteranCountsArrays[sportsClub];
 
-            // Check if the user is suspended
-            if (user.suspended) {
-              statusCounts[4]++;
+
+          // --------------- Update gender counts ----------------
+          // Gender information
+          var gender = user.gender || "Unknown";
+          if (gender === "Male") {
+            genderCounts[0]++;
+          } else if (gender === "Female") {
+            genderCounts[1]++;
+          }
+
+          // --------------- Update age group counts ----------------
+          var birthDate = user.dob;
+          if (birthDate) {
+            var ageGroup = getAgeGroup(birthDate);
+            // console.log("Got age group: " + ageGroup);
+            if (ageGroup === "juniors") {
+              //console.log("Inc junior");
+              ageCounts[0]++;
+            } else if (ageGroup === "youth") {
+              //console.log("Inc Youth");
+              ageCounts[1]++;
+            } else if (ageGroup === "adults") {
+              //console.log("Inc Adult");
+              ageCounts[2]++;
             }
           }
 
-          var sumAllIterator = function(accumulator, value) {
-            return accumulator + value;
+
+          // --------------- Update status counts ----------------
+          // Possible Status: "Pending", "Active", "InActive", "Suspended"
+          // Check if the user is pending
+          if (user.pending) {
+            statusCounts[0]++;
           }
 
-          GenderBreakdown.pushRow(genderCounts);
+          // Check if the user is active
+          if (user.active) {
+            statusCounts[1]++;
+          } else {
+            statusCounts[2]++;
+          }
+
+          // Check if the user is suspended
+          if (user.suspended) {
+            statusCounts[4]++;
+          }
+
+          // --------------- Update veteran counts ----------------
+          if (user.isVeteran) {
+            veteranCounts[0]++;
+
+            if (user.veteranStatus === "Disabled Veteran") {
+              veteranCounts[1]++;
+            } else if (user.veteranStatus === "Active Duty") {
+              veteranCounts[2]++;
+            } else if (user.veteranStatus === "Retired") {
+              veteranCounts[3]++;
+            }
+          }
+
+        }
+
+        var sumAllIterator = function(accumulator, value) {
+          return accumulator + value;
+        }
+
+        var clubs = ["statewide", "nashville", "memphis"];
+        for (var i = 0; i < clubs.length; i++) {
+          var club = clubs[i];
+          var genderCounts = genderCountsArrays[club];
+          var ageCounts = ageCountsArrays[club];
+          var statusCounts = statusCountsArrays[club];
+          var veteranCounts = veteranCountsArrays[club];
+
+          // ----------------------- Appending Gender information --------------------
+          tables[club].GenderBreakdown.pushRow(genderCounts);
           var genderSum = genderCounts.reduce(sumAllIterator); // get the sum of the elements
           var genderFrac = genderCounts.map(function(el) {
             return el / genderSum;
           });
           //console.log(genderFrac);
-          GenderBreakdown.pushRow(genderFrac);
+          tables[club].GenderBreakdown.pushRow(genderFrac);
 
-          AgeBreakdown.pushRow(ageCounts);
+          // ------------------------ Appending age information ------------------------
+          tables[club].AgeBreakdown.pushRow(ageCounts);
+          console.log(ageCounts);
+
           var ageSum = ageCounts.reduce(sumAllIterator);
           var ageFrac = ageCounts.map(function(el) {
             return el / ageSum;
           });
+
           //console.log(ageFrac);
-          AgeBreakdown.pushRow(ageFrac);
+          tables[club].AgeBreakdown.pushRow(ageFrac);
 
-          StatusBreakdown.pushRow(statusCounts);
+          // ------------------------ Appending status information ---------------------
+          tables[club].StatusBreakdown.pushRow(statusCounts);
 
-          callback(null, numUsers);
+          // ------------------------ Appending veteran information ---------------------
+          tables[club].VeteranBreakdown.pushRow(veteranCounts);
         }
+
+        callback(null, overallTotals);
       });
     }
     // load counts information
@@ -567,12 +682,29 @@ function getMonthlyMembership(relevantDate, done) {
       done(err);
       return;
     } else {
-      OverallCount.pushRow(counts);
+
+      var clubs = ["statewide", "nashville", "memphis"];
+      var entries = 2;
+      for (var i = 0; i < clubs.length; i++) {
+        var club = clubs[i];
+        tables[club].OverallCount.pushRow([counts[0][club], counts[1][club]]);
+      }
+
+      console.log("Tables: ");
+      console.log(tables);
 
       var data = {
-        sheet1: {
-          name: "TNABA Monthly Membership Data",
-          data: [GenderBreakdown, AgeBreakdown, StatusBreakdown, NewMemberSummary, OverallCount]
+        statewide: {
+          name: "TNABA Monthly Membership Data - Statewide",
+          data: yankDataArrayFromTable("statewide")
+        },
+        nashville: {
+          name: "TNABA Monthly Membership Data - Nashville",
+          data: yankDataArrayFromTable("nashville")
+        },
+        memphis: {
+          name: "TNABA Monthly Membership Data - Memphis",
+          data: yankDataArrayFromTable("memphis")
         }
       };
 

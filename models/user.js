@@ -6,7 +6,7 @@ var Bookshelf = require('bookshelf')(knex);
 module.exports = (function() {
 
   var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
-    'firstName', 'lastName', 'phone'];
+    'firstName', 'lastName', 'phone', 'sportsClub'];
 
   var User = Bookshelf.Model.extend({
     tableName: 'users',
@@ -32,6 +32,9 @@ module.exports = (function() {
     phone: function() {
       return this.hasOne(UserPhone, 'entity_id');
     },
+    sportsClub: function() {
+      return this.hasOne(UserSportsClub, 'entity_id');
+    }
     /*
     membershipType: function() {
       return this.hasOne(UserType, 'entity_id');
@@ -92,12 +95,15 @@ module.exports = (function() {
     obj.dob = model.related('dateOfBirth').attributes.field_date_of_birth_value;
     obj.gender = model.related('gender').attributes.field_gender_value;
 
+    obj.sportsClub = model.related('sportsClub').attributes.field_sports_club_value;
+
     // Check if the user is a veteran
     var veteranStatus = model.related('isVeteran').attributes.field_veteran_status_value
     obj.isVeteran = false;
     if (veteranStatus !== 'Does Not Apply') {
       obj.isVeteran = true;
     }
+    obj.veteranStatus = veteranStatus;
 
     return obj;
   };
@@ -218,6 +224,10 @@ module.exports = (function() {
       this.query('where', 'entity_type', '=', 'user');
     }
   });
+
+  var UserSportsClub = Bookshelf.Model.extend({
+    tableName: 'field_data_field_sports_club'
+  })
 
   /*
   var UserType = Bookshelf.Model.extend({
