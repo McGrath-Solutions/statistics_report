@@ -1,4 +1,4 @@
-var genReport = require('../util/reportsGenerator');
+var genReport = require('../../util/reportsGenerator');
 
 
 genReport("Monthly Programming Report", "./reports/monthly.xlsx", new Date(2014, 2, 1), function(err, path) {

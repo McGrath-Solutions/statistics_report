@@ -60,3 +60,4 @@ models/databaseconfig.js
 reports/*
 tests/reports/*
 tests/reportsFolder/*
+dumps/*

@@ -1,4 +1,4 @@
-var Registration = require('../models/registration');
+var Registration = require('../../models/registration');
 
 var printstuff = function(err, models) {
   for (var i = 0; i < models.length; i++) {

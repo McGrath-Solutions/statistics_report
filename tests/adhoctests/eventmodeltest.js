@@ -1,5 +1,5 @@
 var util = require('util');
-var Event = require('../models/event');
+var Event = require('../../models/event');
 
 var printstuff = function(err, models) {
   console.log("We are here");

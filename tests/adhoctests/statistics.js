@@ -1,4 +1,4 @@
-var Statistic = require('../models/statistic');
+var Statistic = require('../../models/statistic');
 var util = require('util');
 
 Statistic.loadObjects("Stats Goalball Tournament", function(err, objects) {

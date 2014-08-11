@@ -1,4 +1,4 @@
-var User = require('../models/user');
+var User = require('../../models/user');
 /*
 new User({uid: 1}).fetch({
   withRelated: ['roles', 'dateOfBirth', 'gender', 'isVeteran']

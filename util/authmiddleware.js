@@ -9,8 +9,8 @@ module.exports = function() {
         if (!user) return false;
 
         // Check if the user has a role in editableRoles
-        console.log("user: ");
-        console.log(user);
+        // console.log("user: ");
+        // console.log(user);
         var roles = user.roles;
         for (var i = 0; i < editableRoles.length; i++) {
             var role = editableRoles[i];

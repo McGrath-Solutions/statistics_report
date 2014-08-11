@@ -43,14 +43,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Tell me about my env
 console.log(process.env.NODE_ENV);
-
-// For debug, make it pretty
 app.locals.pretty = true;
 
-// development only
-if ('development' == app.get('env')) {
+if ('development' === app.get('env')) {
   app.use(express.errorHandler());
 }
+
+// Disable console logging in production
+if ('production' === app.get('env')) {
+  console.log = function() {};
+}
+
 
 // Passport local authentication strategy
 require('./util/auth')(passport)

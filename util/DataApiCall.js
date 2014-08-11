@@ -398,7 +398,7 @@ function getMonthlyProgramming(relevantDate, done) {
       buildTables();
       var data = {
         sheet1: {
-          name: "TNABA Monthly Programming Report",
+          name: "TNABA State Monthly Programming Report",
           data: [TotalsTable, NashvilleTable, StatewideTable, MemphisTable]
         }
       }
@@ -614,7 +614,7 @@ function getMonthlyMembership(relevantDate, done) {
 
           // Check if the user is suspended
           if (user.suspended) {
-            statusCounts[4]++;
+            statusCounts[3]++;
           }
 
           // --------------- Update veteran counts ----------------
@@ -650,7 +650,8 @@ function getMonthlyMembership(relevantDate, done) {
           var genderFrac = genderCounts.map(function(el) {
             return el / genderSum;
           });
-          //console.log(genderFrac);
+
+          console.log(genderFrac);
           tables[club].GenderBreakdown.pushRow(genderFrac);
 
           // ------------------------ Appending age information ------------------------
@@ -662,13 +663,19 @@ function getMonthlyMembership(relevantDate, done) {
             return el / ageSum;
           });
 
-          //console.log(ageFrac);
+          console.log(ageFrac);
           tables[club].AgeBreakdown.pushRow(ageFrac);
 
           // ------------------------ Appending status information ---------------------
+          console.log("Pushing Status Counts");
+          console.log(statusCounts);
+          console.log(statusCounts.length);
+          console.log(tables[club].StatusBreakdown.length);
           tables[club].StatusBreakdown.pushRow(statusCounts);
 
           // ------------------------ Appending veteran information ---------------------
+          console.log("Pushing Veteran Counts");
+          console.log(veteranCounts);
           tables[club].VeteranBreakdown.pushRow(veteranCounts);
         }
 

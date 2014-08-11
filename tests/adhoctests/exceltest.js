@@ -1,5 +1,5 @@
 // TODO: write real tests
-var xls = require('../util/xlsutil')
+var xls = require('../../util/xlsutil')
 
 var Table1 = new xls.Table("Table1", ["string", "number", "number"], ["Name", "number of hits", "number of misses"]);
 var Table2 = new xls.Table("Table2", ["string", "string", "string"], ["FirstName", "Email", "PhoneNumber"]);
