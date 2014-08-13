@@ -1,3 +1,9 @@
+/*
+ * Generate xml reports
+ * Note: DEPRECATED. Use the client side Reports-Generator library
+ * instead
+ * @author Mike Zhang
+ */
 var xls = require('msexcel-builder');
 var _ = require('lodash');
 var mkdirp = require('mkdirp');

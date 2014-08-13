@@ -4,7 +4,6 @@
  */
 var dbconfig = require('./databaseconfig');
 var knex = require('knex')(dbconfig);
-
 var Bookshelf = require('bookshelf')(knex);
 
 module.exports = (function() {
@@ -12,6 +11,7 @@ module.exports = (function() {
   var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
     'firstName', 'lastName', 'phone', 'sportsClub'];
 
+  /* The underlying user bookshelf model */
   var User = Bookshelf.Model.extend({
     tableName: 'users',
     idAttribute: 'uid',
@@ -116,6 +116,12 @@ module.exports = (function() {
     return obj;
   };
 
+  /*
+   * Fetch a user object by the provided id. Calls callback
+   * with the object and any errors when completed.
+   * @param {number} userId - the userId to fetch
+   * @param {function} callback - a callback with arguments (err, object)
+   */
   User.getUserObjectById = function(userId, callback) {
     new User({uid: userId}).fetch({
       withRelated: relatedProperties
@@ -129,6 +135,12 @@ module.exports = (function() {
     });
   };
 
+  /*
+   * Fetch user objects created before the given date. Calls callback
+   * with an array of objects and any errors when completed.
+   * @param date {date} - the date to compare objects with
+   * @param callback {function} - a callback with arguments (err, objects);
+   */
   User.loadUsersCreatedBefore = function(date, callback) {
     var dateDrupalTime = date.getTime() / 1000;
     new User().query(function(qb) {
@@ -150,6 +162,12 @@ module.exports = (function() {
     });
   };
 
+  /*
+   * Fetch user objects created in the same month as date. Calls calback
+   * with an array of objects and any errors when completed.
+   * @param date {date} - the date to compare objects with
+   * @param callback {function} - a callback with arguments (err, objects)
+   */
   User.loadUsersByCreatedMonth = function(date, callback) {
     var month = date.getMonth();
     var year = date.getFullYear();

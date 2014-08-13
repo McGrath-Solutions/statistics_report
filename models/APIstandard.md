@@ -1,7 +1,6 @@
 Database Entity
 =======================
 - Standard Methods
-  * initFromDatabaseObject
   * loadObjects
     > Fetch all objects of type entity in the database
   * load[Entity]ById

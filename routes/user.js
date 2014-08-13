@@ -1,3 +1,7 @@
+/*
+ * User related controllers
+ * @author Mike Zhang
+ */
 var passport = require('passport');
 var Session = require('../models/session');
 
@@ -19,6 +23,8 @@ exports.login = function(req, res) {
  * credentials are good and grant permission if the right credentials are given.
  */
 exports.checkLogin = function(req, res, next) {
+  // Attempt to authenticate the user using the login page strategy.
+  // See util/auth.js for more details
   passport.authenticate('loginpage', function(err, user, info) {
     if (err || !user) {
       // req.flash('username', req.body.username);
@@ -38,11 +44,18 @@ exports.checkLogin = function(req, res, next) {
 };
 
 /*
- * Logout controller
+ * Logout controller. Ensures that the user is logged out in both 
+ * the standard passport session and in the Drupal (MyTNABA homepage)
+ * session
  */
 exports.logout = function(req, res) {
+  // Logout of the standard session
   req.logout();
+
+  // If drupal session exists
   if (req.session.drupal) {
+
+    // Destroy the sid in the drupal database
     var sid = req.session.drupal.sid;
     Session.deleteById(sid, function(err) {
       if (err) {
@@ -50,6 +63,8 @@ exports.logout = function(req, res) {
       }
 
       req.session.drupal = {};
+
+      // Redirect the user
       req.flash('info', "You are now logged out");
       res.redirect('/');
     });
@@ -57,6 +72,7 @@ exports.logout = function(req, res) {
     return;
   }
 
+  // (If no drupal session), redirect the user
   req.flash('info', 'You are now logged out');
   res.redirect('/');
 };

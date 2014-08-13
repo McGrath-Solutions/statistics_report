@@ -1,4 +1,5 @@
 /*
+ * authmiddleware.js
  * Adds authentication information middleware (whether the user is authenticated and has
  * permissions to edit, or, in this context, view reports.
  */
@@ -11,9 +12,6 @@ module.exports = function() {
     "executive director", "coordinator"];
     if (!user) return false;
 
-    // Check if the user has a role in editableRoles
-    // console.log("user: ");
-    // console.log(user);
     var roles = user.roles;
     for (var i = 0; i < editableRoles.length; i++) {
       var role = editableRoles[i];

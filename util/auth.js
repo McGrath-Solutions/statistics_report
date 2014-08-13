@@ -1,4 +1,8 @@
-// Authentication for a drupal mysql database
+/*
+ * auth.js
+ * Authentication strategy for a Drupal database
+ * @author Mike Zhang
+ */
 var crypto = require('crypto');
 var LocalStrategy = require('passport-local').Strategy;
 var user = require('../models/user');
@@ -43,9 +47,12 @@ function base64encode(input, count) {
    return output;
 }
 
-// Check that the drupal password is valid
-// passwordenc = the encrypted password (stored in databasse)
-// password = the user-inputted password
+/*
+ * Check that the Drupal password is correct. 
+ * @param {string} passwordenc - the encrypted password (stored in databasse)
+ * @param {string} password - the user-inputted password
+ * @returns {boolean} true if match, false if no match
+ */
 function checkDrupalPassword(passwordenc, password) {
   // Default size of drupal hash
   var DRUPAL_HASH_SIZE = 55;
@@ -75,8 +82,10 @@ function checkDrupalPassword(passwordenc, password) {
 
   return output.substring(0, DRUPAL_HASH_SIZE) === passwordenc;
 }
-  
-// Modified passport strategy, built for drupal
+
+/*
+ * Modified passport strategy, imitates the drupal hashing/authentication scheme
+ */
 module.exports = function(passport) {
   passport.serializeUser(function(user, done) {
     done(null, user.id || user.attributes.uid);

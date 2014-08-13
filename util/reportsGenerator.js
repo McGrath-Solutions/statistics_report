@@ -1,3 +1,8 @@
+/*
+ * Generate reports of a given type.
+ * Note: DEPRECATED. Use DataApiCall and generate client-side instead.
+ * @author Mike Zhang
+ */
 var User = require('../models/user');
 var Event = require('../models/event');
 var Registration = require('../models/registration');

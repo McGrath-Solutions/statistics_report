@@ -1,5 +1,8 @@
-/* DataApiCall.js 
- * Fetch data about statistics and return them to the client */
+/* 
+ * DataApiCall.js
+ * Fetches data about a relevant report type and return them to the client. 
+ * @author Mike Zhang
+ */
 var User = require('../models/user');
 var Event = require('../models/event');
 var Registration = require('../models/registration');
@@ -8,8 +11,14 @@ var xls = require('./xlsutil');
 var async = require('async');
 var _ = require('lodash');
 
-/* Helper methods */
-/* Get the sport in the context of this report associated with the event sport stored in database */
+/************************** Helper methods *****************************/
+/* 
+ * Get the sport in the context of this report associated 
+ * with the event sport stored in database.
+ * ie. Converts sports name from database club name to reports plug name
+ * @param dbName {string} - the name of the sport in database
+ * @returns {string} the sport name in the context of reports
+ */
 var getSportNameInContext = function(dbName) {
   var contextTable =  {
     "Goalball Tournament": "Goalball",
@@ -30,7 +39,12 @@ var getSportNameInContext = function(dbName) {
   }
 };
 
-/* Get the club name of the sport in context of this report */
+/* 
+ * Get the club name of the sport in context of the report generator
+ * ie. Converts the database club name to reports club name
+ * @param {string} dbClubName - The clubname as stored in database
+ * @param {string} The clubname as in the reports generator
+ */
 var getClubNameInContext = function(dbClubName) {
   // console.log(dbClubName);
   if (dbClubName === "At-Large") {
@@ -48,8 +62,11 @@ var getClubNameInContext = function(dbClubName) {
   }
 };
 
-/* Get the age group associated with a user with the given dateOfBirth.
- * @param dateOfBirth = the date of birth of the user;                     */
+/* 
+ * Get the age group associated with a user with the given dateOfBirth.
+ * @param dateOfBirth {date} - the date of birth of the user;   
+ * @return {string} - whether the user is in "juniors", "youth" or "adults".                  
+ */
 var getAgeGroup = function(dateOfBirth) {
   if (!dateOfBirth) {
     throw new Error("getAgeGroup: Undefined Date of Birth");
@@ -71,6 +88,12 @@ var getAgeGroup = function(dateOfBirth) {
   }
 }
 
+/*
+ * Fetch monthly programming report for the month of relevantDate,
+ * calling function done when completed.
+ * @param relevantDate {date} - The date whose month will be used to fetch api
+ * @param done {function} - The callback function of the form (err, data)
+ */
 function getMonthlyProgramming(relevantDate, done) {
   /* Helper functions */
   var genCountsObject = function(title) {
@@ -421,6 +444,12 @@ function getMonthlyProgramming(relevantDate, done) {
   });
 }
 
+/*
+ * Fetch monthly membership report for the month of relevantDate,
+ * calling function done when completed.
+ * @param relevantDate {date} - The date whose month will be used to fetch api
+ * @param done {function} - The callback function of the form (err, data)
+ */
 function getMonthlyMembership(relevantDate, done) {
   var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
   var newMemberSchema = ["number", "string", "string", "string", "string", "string"]
@@ -724,9 +753,13 @@ function getMonthlyMembership(relevantDate, done) {
 }
 
 
-// Data Api Call: 
-// Basically a rewrite of reportsGenerator so that it is cleaner, simpler and does not end
-// with the generation of a report. Instead, returns the data associated with a given report.
+/*
+ * Data API call external export. Return api data for report type dataType
+ * for the month of relevantDate, calling callback when completed
+ * @param dataType {string} - Indicate what type of report data to fetch
+ * @param relevantDate {date} - a date with a relevant month to fetch data from
+ * @param callback {function} - a callback of the form (err, data)
+ */
 module.exports = function(dataType, relevantDate, callback) {
   if (dataType == "Monthly Programming Report") {
     getMonthlyProgramming(relevantDate, callback);
