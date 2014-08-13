@@ -43,6 +43,28 @@ var logUserInUsingCookieId = function(req, cookieId, callback) {
       return callback();
     }
     var id = object.uid;
+
+
+    User.getUserObjectById(id, function(err, user) {
+      if (err) {
+        console.error(err);
+        return callback();
+      }
+
+      req.logIn(user, function(err) {
+        if (err) {
+          console.error(err);
+          return callback();
+        }
+
+        req.session.drupal = {};
+        req.session.drupal.sid = cookieId;
+
+        callback();
+      });
+    })
+
+    /*
     new User({uid: id}).fetch().then(function(model) {
       var user = User.initFromDatabaseObject(model);
       req.logIn(user, function(err) {
@@ -60,8 +82,9 @@ var logUserInUsingCookieId = function(req, cookieId, callback) {
       // console.error(err);
       callback();
     });
+    */
   });
-}
+};
 
 
 module.exports = function() {
