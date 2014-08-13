@@ -1,3 +1,7 @@
+/*
+ * User model. Fetches information on users from the drupal database.
+ * @author Mike Zhang
+ */
 var dbconfig = require('./databaseconfig');
 var knex = require('knex')(dbconfig);
 
@@ -42,7 +46,11 @@ module.exports = (function() {
     */
   });
 
-  // Very Bulky
+  /*
+   * Initialize and return a user object from a bookshelf model
+   * @param {object} model = the bookshelf model
+   * @returns {object} an simplified object with user information
+   */
   User.initFromDatabaseObject = function(model) {
     if (!model) {
       return {};
