@@ -38,7 +38,9 @@ block content
     h4 Select a report type to generate. 
     h4(id="selected") No report type selected.
     div.btn-group-vertical
-      button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
+    - if (editLevel === 1) {
+        button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
+    - }
       button.btn.btn-default(type="button", id="event") Tnaba event monthly report
 
     br

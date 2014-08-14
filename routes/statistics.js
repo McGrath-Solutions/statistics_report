@@ -14,25 +14,15 @@ var getReportType = function(type) {
   }
 };
 
-var hasViewPermissions = function(reportType, roles) {
+var hasViewPermissions = function(reportType, editLevel) {
   console.log("User is seeking: " + reportType);
-  console.log("User has roles: " + roles);
-
-  // The highest privileged class of user
-  var highPrivilegeRoles = ["administrator", "board_member", "officer", 
-                           "executive director"];
+  console.log("User has editLevel: " + editLevel);
 
   if (reportType === "Monthly Programming Report") {
     // Assuming the user canEdit
     return true;
   } else if (reportType === "Monthly Membership Report") {
-
-    for (var i = 0; i < roles.length; i++) {
-      var role = highPrivilegeRoles[i];
-      if (roles.indexOf(role) != -1) return true;
-    }
-
-    return false;
+    return editLevel == 1;
   }
 };
 
@@ -69,7 +59,7 @@ exports.api = function(req, res) {
   } else {
     var reportType = getReportType(type);
 
-    if (!hasViewPermissions(reportType, req.user.roles)) {
+    if (!hasViewPermissions(reportType, req.editLevel)) {
       return res.send(403, {message: "Not Authorized"});
     }
 

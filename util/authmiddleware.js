@@ -49,13 +49,14 @@ module.exports = function() {
     res.locals.isAuthenticated = req.isAuthenticated();
     req.editLevel = getPermissionsLevel(req.user);
     req.hasEditPermissions = (req.editLevel > 0);
-    res.editLevel = req.editLevel;
+
+    res.locals.editLevel = req.editLevel;
     res.locals.hasEditPermissions = (req.editLevel > 0);
 
 
     console.log(req.hasEditPermissions);
     console.log(req.editLevel);
-    console.log(res.editLevel);
+    console.log(res.locals.editLevel);
     next();
   }
 
