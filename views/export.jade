@@ -38,12 +38,13 @@ block content
     h4 Select a report type to generate. 
     h4(id="selected") No report type selected.
     div.btn-group-vertical
-    - if (editLevel === 1) {
-        button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
-    - }
+      - if (editLevel === 1) {
+      button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
+      - }
       button.btn.btn-default(type="button", id="event") Tnaba event monthly report
 
     br
+
     h4.notReady#downloadLabel Choose a file format:
     //-button.btn.btn-primary.btn-lg(id="download", class="notReady") XLSX 
     button.btn.btn-primary.btn-lg(id="downloadPDF", class="notReady") PDF
