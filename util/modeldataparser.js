@@ -35,6 +35,33 @@ module.exports = (function() {
     }
   };
 
+  var getInformationFunction = function(type, modelName, property, value) {
+    return function() {
+      var obj = {
+        type: type,
+        name: modelName.toLowerCase(),
+        property: property,
+        value: value
+      };
+
+      return obj;
+    }
+  };
+
+  var getPropertyType = function(property) {
+    if (property instanceof Array) {
+      return "array";
+    } else if (property == Date) {
+      return "date";
+    } else if (property == Boolean) {
+      return "boolean";
+    } else if (property == String) {
+      return "string";
+    } else if (property instanceof Function) {
+      return "function";
+    }
+  };
+
   calculateAge.returnValues = ["adults", "youth", "junior"];
 
   var properties = {
@@ -57,56 +84,68 @@ module.exports = (function() {
     'age': calculateAge
   };
 
+
+
   /************************* Public methods **************************************/
+  var parser = {};
   parser.loadModel = function(modelName) {
-    var obj = function() { 
-      return {
-        type: "model",
-        name: modelName.toLowerCase();
+
+    var obj = (function(modelName) {
+      return function() { 
+        return {
+          type: "model",
+          name: modelName.toLowerCase()
+        }
       }
-    };
+    })(modelName)
 
     var props = properties[modelName.toLowerCase()];
     for (var i = 0; i < props.length; i++) {
       var property = props[i];
-      obj[property] = function() {
-        return {
-          type: "property",
-          model: modelName.toLowerCase(),
-          name: property
+      var valueType = getPropertyType(propertyValues[property]);
+      obj[property] = (function(modelName, property, valueType) {
+        return function() {
+          return {
+            type: "property",
+            model: modelName.toLowerCase(),
+            name: property,
+            valueType: valueType
+          }
         }
-      };
+      })(modelName, property, valueType);
 
       var value = propertyValues[property];
       if (value instanceof Array) {
         for (var j = 0; j < value.length; j++) {
           var instance = value[j];
-          obj[property][instance] = function() {
-            return {
-              type: "value",
-              valueType: "array",
-              property: property,
-              model: modelName.toLowerCase(),
-              name: instance
-            };
-          }
+          obj[property][instance] = (function(property, modelName, instance) {
+            return function() {
+              return {
+                type: "value",
+                property: property,
+                model: modelName.toLowerCase(),
+                name: instance
+              };
+            }
+          })(property, modelName, instance);
         }
-      } else if (value instanceof function) {
+      } else if (value instanceof Function && value != Boolean && value != String && value != Date) {
         var possibleValues = value.returnValues;
         if (possibleValues) {
           for (var j = 0; j < possibleValues.length; j++) {
-            obj[property][possibleValues[j]] = function() {
-              return {
-                type: "value",
-                valueType: "function",
-                property: property,
-                model: modelName.toLowerCase(),
-                name: possibleValues[j]
+            obj[property][possibleValues[j]] = (function(property, modelName, value) {
+              return function() {
+                return {
+                  type: "value",
+                  property: property,
+                  model: modelName.toLowerCase(),
+                  name: value
+                }
               }
-            }
+            })(property, modelName, possibleValues[j]);
           }
         }
-      } else if (value instanceof Date) {
+      } else if (value == Date) {
         obj[property].between = function(date1, date2) {
           return function() {
             var newObj = obj[property]();
@@ -117,6 +156,8 @@ module.exports = (function() {
         };
       } 
     }
+
+    return obj;
   };
 
   parser.defineTables = function(tableName, depends, as, rows) {
@@ -130,4 +171,6 @@ module.exports = (function() {
   parser.fetchData = function() {
 
   };
+
+  return parser;
 })();
