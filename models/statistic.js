@@ -1,5 +1,5 @@
 /*
- * Statistics type model
+ * Statistics type model. 
  * @author Mike Zhang
  * 
  * Instructions for updating:
@@ -16,6 +16,8 @@ var dbconfig = require('./databaseconfig');
 var knex = require('knex')(dbconfig);
 var Bookshelf = require('bookshelf')(knex);
 var async = require('async');
+var assert = require('assert');
+var achillesGenerator = require('./statisticsupport/achillesdescription');
 
 // Models
 var Event = require('./event');
@@ -50,7 +52,6 @@ module.exports = (function() {
   /* Translation from User Interface type (Displayed on the Drupal homepage) to Node Type
    * Stored within the Node table of the Drupal database                                  */
   var TypeTable = {
-    "Stats Achilles": "sports_statistic",
     "Stats Cycling": "stats_cycling",
     "Stats Bowling": "bowling_scores",
     "Stats Health Check": "stats_health_check",
@@ -73,20 +74,6 @@ module.exports = (function() {
         "round": "one",
         "goalballTeam": "many",
         "goalballTeamReference": "many",
-        "event": "one"
-      }
-    },
-    'sports_statistic': {
-      contains: [],
-      containsRelated: [],
-      related: ["participant", "event", "minutes", "hours", 
-                         "seconds", "distanceInMiles"],
-      amount: {
-        "participant": "one",
-        "minutes": "one",
-        "hours": "one",
-        "seconds": "one",
-        "distanceInMiles": "one",
         "event": "one"
       }
     },
@@ -127,32 +114,12 @@ module.exports = (function() {
   var CONTAINS = 3;
   var PropertyType = {
     "round": STANDARD,
-    "participant": USER_ID,
-    "minutes": STANDARD,
-    "hours": STANDARD,
-    "seconds": STANDARD,
-    "distanceInMiles": STANDARD,
     "goalballTeam": CONTAINS,
     "event": EVENT_ID
   };
 
   /* Table of property Bookshelf models */
   var PropertyTable = {
-    "participant": Bookshelf.Model.extend({
-      tableName: "field_data_field_participant"
-    }),
-    "minutes": Bookshelf.Model.extend({
-      tableName: "field_data_field_minutes"
-    }),
-    "hours": Bookshelf.Model.extend({
-      tableName: "field_data_field_hours"
-    }),
-    "seconds": Bookshelf.Model.extend({
-      tableName: "field_data_field_seconds"
-    }),
-    "distanceInMiles": Bookshelf.Model.extend({
-      tableName: "field_data_field_distance_in_miles"
-    }),
     "goalballTeam": Bookshelf.Model.extend({
       tableName: "node",
       constructor: function() {
@@ -188,7 +155,7 @@ module.exports = (function() {
       var id = model.related('event').attributes[drupalAttr];
       Event.loadEventObjectById(id, cb);
     }
-  }
+  };
 
   var goalballTeamFetch = function() {
     return function(model, cb) {
@@ -279,15 +246,57 @@ module.exports = (function() {
   // Table of methods containing a procedure describing how to fetch
   // a given property from a statistic type
   var PropertyFetchTable = {
-    "participant": standardFetch("participant"),
-    "minutes": standardFetch("minutes"),
-    "hours": standardFetch("hours"),
-    "seconds": standardFetch("seconds"),
-    "distanceInMiles": standardFetch("distanceInMiles"),
-    "event": standardFetch("event"),
     "round": standardFetch("round"),
     "goalballTeam": goalballTeamFetch()
   };
+
+  var installStatistic = function(eventType, statistic) {
+    TypeTable[statistic.humanName] = statistic.databaseName;
+    TypeProperties[statistic.databaseName] = statistic.typeProperties;
+
+    var allProperties = Object.keys(statistic.typePropertyFormat);
+    for (var i = 0; i < allProperties.length; i++) {
+      var prop = allProperties[i];
+
+      if (prop in PropertyType) {
+        continue;
+      }
+
+      PropertyType[prop] = statistic.typePropertyFormat[prop];
+    }
+
+    for (var i = 0; i < allProperties.length; i++) {
+      var prop = allProperties[i];
+      var format = statistic.typePropertyFormat[prop];
+      switch (format) {
+        case STANDARD, USER_ID, EVENT_ID:
+        PropertyFetchTable[prop] = standardFetch(prop);
+        break;
+
+        case CONTAINS:
+        if (!statistic.fetchMethods[prop]) {
+          throw new Error("Unspecified fetch methods for CONTAINS property " + prop);
+        }
+        PropertyFetchTable[prop] = statistic.fetchMethods[prop]();
+        break;
+      }
+    }
+
+    var allModels = Object.keys(statistic.propertyBookshelfModels);
+    for (var i = 0; i < allModels.length; i++) {
+      var name = allModels[i];
+
+      if (name in PropertyTable) {
+        // Assume are the same
+        continue;
+      }
+
+      PropertyTable[name] = statistic.propertyBookshelfModels[name]; 
+    }
+  }
+
+  var achilles = achillesGenerator(Bookshelf);
+  installStatistic("achilles", achilles);
 
   /********************************************************************************************
    * Fetch the Bookshelf object associated with the given statistic type
@@ -295,6 +304,7 @@ module.exports = (function() {
    * @return {Object} The Bookshelf object associated with the given statistic
    ********************************************************************************************/
   var getStatisticNode = function(statistic_name) {
+
     var related = TypeProperties[statistic_name].related;
     var containsRelated = TypeProperties[statistic_name].containsRelated;
     var properties = related.concat(containsRelated);
@@ -360,6 +370,10 @@ module.exports = (function() {
    ********************************************************************************************/
   Statistic.initFromDatabaseObject = function(type, model, callback) {
     // console.log(model.relations.participant);
+    console.log("Type: " + type);
+    console.log("Model: ");
+    console.log(model);
+
     var entityType = TypeTable[type] || type;
     var related = TypeProperties[entityType].related;
     var contains = TypeProperties[entityType].contains;
@@ -418,6 +432,7 @@ module.exports = (function() {
       var models = Collection.models;
       var objects = [];
       var funcList = [];
+
       for (var i = 0; i < models.length; i++) {
 
         funcList[funcList.length] = (function(type, model) {
