@@ -20,10 +20,15 @@ function($, ReportsGenerator) {
       console.log("Event focus: " + $('#event').is(':focus'));
     };
 
+    var elements = $('#options').children();
+
     var deselected = function() {
+      /*
       var mem = $('#membership').is(':focus');
       var eve = $('#event').is(':focus');
-      if (!mem && !eve) {
+      */
+     
+      if (!elements.is(':focus')) {
         $('#selected').text("No report type selected.");
         $('#downloadLabel').addClass("notReady");
         $('#download').addClass("notReady");
@@ -131,28 +136,15 @@ function($, ReportsGenerator) {
         yearSelected = thisYear - 1;
       }
     });
+    
 
-    $('#membership').on('click', function() {
-      // Only if ready to click, click
+    elements.on('click', function() {
       if (!ready) {
-        this.blur();
-        return;
+        return this.blur();
       }
 
-      // console.log("Clicked membership");
       selected($(this));
-    });
-
-    $('#event').on('click', function() {
-      // Only activate if ready to click
-      if (!ready) {
-        this.blur();
-        return;
-      }
-
-      // console.log("Clicked event");
-      selected($(this));
-    });
+    })
 
     /* 
      * Download click callback

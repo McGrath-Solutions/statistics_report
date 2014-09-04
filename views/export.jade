@@ -26,11 +26,16 @@ block content
 
     h4 Select a report type to generate. 
     h4(id="selected") No report type selected.
-    div.btn-group-vertical
+    div.btn-group-vertical#options
       - if (editLevel === 1) {
-      button.btn.btn-default(type="button", id="membership") Tnaba state monthly membership report
+      button.btn.btn-default(type="button", id="membership") TNABA state monthly membership report
+      button.btn.btn-default(type="button", id="membershipNashville") TNABA Nashville monthly membership report
+      button.btn.btn-default(type="button", id="membershipMemphis") TNABA Memphis monthly membership report
+      button.btn.btn-default(type="button", id="membershipRoster") TNABA Membership Roster
       - }
-      button.btn.btn-default(type="button", id="event") Tnaba event monthly report
+      button.btn.btn-default(type="button", id="event") TNABA state event monthly report
+      button.btn.btn-default(type="button", id="eventNashville") TNABA Nashville monthly membership report
+      button.btn.btn-default(type="button", id="eventMemphis") TNABA Memphis monthly membership report
 
     br
 
