@@ -9,7 +9,7 @@ var Bookshelf = require('bookshelf')(knex);
 module.exports = (function() {
 
   var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
-    'firstName', 'lastName', 'phone', 'sportsClub'];
+    'firstName', 'lastName', 'phone', 'sportsClub', 'ageGrouping'];
 
   /* The underlying user bookshelf model */
   var User = Bookshelf.Model.extend({
@@ -38,6 +38,9 @@ module.exports = (function() {
     },
     sportsClub: function() {
       return this.hasOne(UserSportsClub, 'entity_id');
+    },
+    ageGrouping: function() {
+      return this.hasOne(UserAgeGroup, 'entity_id');
     }
     /*
     membershipType: function() {
@@ -62,9 +65,11 @@ module.exports = (function() {
     obj.username = model.attributes.name;
 
     // Test if the user is suspended
-    obj.suspended = (!model.attributes.status) ? true : false;
+    obj.blocked = (!model.attributes.status) ? true : false;
 
     // Test if the user is active
+    // Deprecated version: Checked whether the user logged in
+    /*
     obj.active = (function isActive(lastAccessSeconds) {
       var today = new Date();
       var thisYear = today.getFullYear();
@@ -81,16 +86,17 @@ module.exports = (function() {
 
       return false;
     })(model.attributes.access);
+    */
 
     obj.created = new Date(model.attributes.created * 1000);
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
     obj.phone = model.related('phone').attributes.field_phone_value;
     // obj.membershipType = model.related('membershipType').attributes.field_membership_type_value;
-    obj.pending = false;
 
     // console.log(model.related('roles').models);
     var roleArray = [];
+    obj.pending = false;
     var roleModels = model.related('roles').models;
     for (var i = 0; i < roleModels.length; i++) {
       var roleName = roleModels[i].attributes.name;
@@ -102,8 +108,13 @@ module.exports = (function() {
     obj.roles = roleArray;
     obj.dob = model.related('dateOfBirth').attributes.field_date_of_birth_value;
     obj.gender = model.related('gender').attributes.field_gender_value;
-
+    obj.ageGroup = model.related('ageGrouping').attributes.field_age_grouping_value;
     obj.sportsClub = model.related('sportsClub').attributes.field_sports_club_value;
+
+    // Current active is defined as not pending
+    obj.active = !obj.pending;
+    obj.isGuest = obj.roles.indexOf("guest") > -1;
+    obj.isAdmin = obj.roles.indexOf("administrator") > -1;
 
     // Check if the user is a veteran
     var veteranStatus = model.related('isVeteran').attributes.field_veteran_status_value
@@ -253,7 +264,11 @@ module.exports = (function() {
 
   var UserSportsClub = Bookshelf.Model.extend({
     tableName: 'field_data_field_sports_club'
-  })
+  });
+
+  var UserAgeGroup = Bookshelf.Model.extend({
+    tableName: 'field_data_field_age_grouping'
+  });
 
   /*
   var UserType = Bookshelf.Model.extend({

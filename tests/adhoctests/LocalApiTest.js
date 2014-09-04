@@ -2,7 +2,7 @@ var api = require('../../util/DataApiCall.js');
 var util = require('util');
 
 
-api("Monthly Membership Report", new Date(2014, 2, 1), function(err, data) {
+api("event", new Date(), function(err, data) {
   if (err) {
     console.error(err);
   } else {

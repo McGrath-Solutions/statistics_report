@@ -5,23 +5,15 @@ var fs = require('fs');
 var api = require('../util/DataApiCall');
 
 
-/* Helper functions */
-var getReportType = function(type) {
-  if (type === "event") {
-    return "Monthly Programming Report";
-  } else if (type === "membership") {
-    return "Monthly Membership Report";
-  }
-};
 
 var hasViewPermissions = function(reportType, editLevel) {
   console.log("User is seeking: " + reportType);
   console.log("User has editLevel: " + editLevel);
 
-  if (reportType === "Monthly Programming Report") {
+  if (reportType.indexOf("event") > -1) {
     // Assuming the user canEdit
     return true;
-  } else if (reportType === "Monthly Membership Report") {
+  } else if (reportType.indexOf("membership") > -1) {
     return editLevel == 1;
   }
 };
@@ -57,9 +49,8 @@ exports.api = function(req, res) {
   if (!type) {
     return res.send("Unknown type");
   } else {
-    var reportType = getReportType(type);
 
-    if (!hasViewPermissions(reportType, req.editLevel)) {
+    if (!hasViewPermissions(type, req.editLevel)) {
       return res.send(403, {message: "Not Authorized"});
     }
 
@@ -68,7 +59,7 @@ exports.api = function(req, res) {
       date = new Date();
     }
 
-    api(reportType, date, function(err, data) {
+    api(type, date, function(err, data) {
       if (err) {
         return res.send("Error: " + err);
       } else {

@@ -25,10 +25,14 @@ var getSportNameInContext = function(dbName) {
     "Goalball Practice": "Goalball",
     "Cycling": "Cycling",
     "Bowling": "Bowling",
-    "Achilles": "Run\/Walk",
+    "Achilles": "Achilles",
     "Goalball": "Goalball",
     "Game Night": "Game Night",
-    "Health Check": "Health Check"
+    "Health Check": "Health Check",
+    "Beeper Kickball": "Beeper Kickball",
+    "Exercise and Yoga": "Exercise and Yoga",
+    "Golf": "Golf",
+    "Conference": "Conference"
   }
 
   var name = contextTable[dbName];
@@ -62,32 +66,6 @@ var getClubNameInContext = function(dbClubName) {
   }
 };
 
-/* 
- * Get the age group associated with a user with the given dateOfBirth.
- * @param dateOfBirth {date} - the date of birth of the user;   
- * @return {string} - whether the user is in "juniors", "youth" or "adults".                  
- */
-var getAgeGroup = function(dateOfBirth) {
-  if (!dateOfBirth) {
-    throw new Error("getAgeGroup: Undefined Date of Birth");
-  }
-  var today = new Date();
-  var age = today.getFullYear() - dateOfBirth.getFullYear();
-  var m = today.getMonth() - dateOfBirth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
-      age--;
-  }
-
-  /* Define Juniors as 1-10, Youth as 11-19, Adults as 20 and up */
-  if (age >= 20) {
-    return "adults";
-  } else if (age >= 11) {
-    return "youth";
-  } else {
-    return "juniors";
-  }
-}
-
 /*
  * Fetch monthly programming report for the month of relevantDate,
  * calling function done when completed.
@@ -97,7 +75,7 @@ var getAgeGroup = function(dateOfBirth) {
 function getMonthlyProgramming(relevantDate, done) {
   /* Helper functions */
   var genCountsObject = function(title) {
-    var obj = {name: title, activities: 0, hours: 0, juniors: 0, adults: 0, veterans: 0,
+    var obj = {name: title, activities: 0, hours: 0, Junior: 0, Youth: 0, Adult: 0, veterans: 0,
                guests: 0, volunteers: 0,
                volunteerHours: 0};
 
@@ -118,6 +96,9 @@ function getMonthlyProgramming(relevantDate, done) {
       console.log("This counts: ");
       console.log(util.inspect(totals));
       */
+     
+      console.log(club);
+      console.log(totals);
 
       TotalsTable.pushObjectRow(totals);
     });
@@ -154,16 +135,16 @@ function getMonthlyProgramming(relevantDate, done) {
   };
 
   /* Main program logic */
-  var labelsTotal = ["Clubs", "# of activities", "# of hours", "Juniors",
+  var labelsTotal = ["Clubs", "# of activities", "Hours", "Juniors", "Youth",
                      "Adult", "Veterans", "Guests", "# of Volunteer Staff",
                       "Volunteer Hours"];
   // The schema
   var schema = ["string", "number", "number", 
                 "number", "number", "number", "number",
-                "number", "number"];
+                "number", "number", "number"];
   
   // Labels for the monthly report per region
-  var labelsMonthly = ["Program", "# of activities", "# of hours", "Juniors", "Adult", 
+  var labelsMonthly = ["Program", "# of activities", "Hours", "Juniors", "Youth", "Adult", 
                       "Veterans", "Guests", "# of Volunteer Staff",
                       "Volunteer Hours"];
 
@@ -185,8 +166,9 @@ function getMonthlyProgramming(relevantDate, done) {
   counts.totals.memphis = genCountsObject("Memphis");
 
   // Generate Counts For Individual Sports
-  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Run\/Walk', 'BR dancing', 'Golf', 'Kickball',
-                'Health Check', 'Other'];
+  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Achilles', 'BR dancing', 'Golf', 
+                'Beeper Kickball',
+                'Health Check', 'Exercise and Yoga', 'Golf', 'Conference', 'Other'];
   for (var i = 0; i < sports.length; i++) {
     counts.nashville[sports[i]] = genCountsObject(sports[i]);
     counts.memphis[sports[i]] = genCountsObject(sports[i]);
@@ -234,6 +216,7 @@ function getMonthlyProgramming(relevantDate, done) {
             */
            
             /* Increment the total number of activities for the specified sport */
+
             counts.totals[club].activities++;
             counts.totals[club].hours += numHours;
             counts[club][sport].activities++;
@@ -390,7 +373,7 @@ function getMonthlyProgramming(relevantDate, done) {
                     }
                   }
 
-                  var userAgeGroup = getAgeGroup(user.dob);
+                  var userAgeGroup = user.ageGroup;
                   counts.totals[registration.club][userAgeGroup]++;
                   counts[registration.club][registration.sport][userAgeGroup]++;
 
@@ -414,9 +397,11 @@ function getMonthlyProgramming(relevantDate, done) {
   ], function(err) {
     if (err) {
       console.log("ERROR");
+      console.log(err);
       done(err);
     } else {
       console.log("Building tables");
+
       // Prepare for table completion
       buildTables();
       var data = {
@@ -761,11 +746,47 @@ function getMonthlyMembership(relevantDate, done) {
  * @param callback {function} - a callback of the form (err, data)
  */
 module.exports = function(dataType, relevantDate, callback) {
-  if (dataType == "Monthly Programming Report") {
+  switch (dataType) {
+    case "event": 
     getMonthlyProgramming(relevantDate, callback);
-  } else if (dataType === "Monthly Membership Report") {
+    break;
+
+    case "eventNashville":
+    getNashvilleProgramming(relevantDate, callback);
+    break;
+
+    case "eventMemphis":
+    getMemphisProgramming(relevantDate, callback);
+    break;
+
+    case "membership":
     getMonthlyMembership(relevantDate, callback);
-  } else {
-    callback(new Error("Unkown Report"));
+    break;
+
+    case "membershipNashville":
+    getNashvilleMembership(relevantDate, callback);
+    break;
+
+    case "membershipMemphis":
+    getMemphisMembership(relevantDate, callback);
+    break;
+
+    case "membershipRoster":
+    getMembershipRoster(relevantDate, callback);
+    break;
+
+    default:
+    callback(new Error("Unknown Report"));
+    break;
   }
 }
+
+
+
+
+
+
+
+
+
+
