@@ -8,7 +8,7 @@ var Bookshelf = require('bookshelf')(knex);
 
 module.exports = (function() {
 
-  var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
+  var relatedProperties = ['roles', 'ageGrouping', 'gender', 'isVeteran', 
     'firstName', 'lastName', 'phone', 'sportsClub'];
 
   /* The underlying user bookshelf model */
@@ -18,8 +18,8 @@ module.exports = (function() {
     roles: function() {
       return this.hasMany(Role, 'uid').through(UserRole, "rid");
     },
-    dateOfBirth: function() {
-      return this.hasOne(UserDateOfBirth, 'entity_id');
+    ageGrouping: function() {
+      return this.hasOne(UserAgeGrouping, 'entity_id');
     },
     gender: function() {
       return this.hasOne(UserGender, 'entity_id');
@@ -61,11 +61,11 @@ module.exports = (function() {
     obj.email = model.attributes.mail;
     obj.username = model.attributes.name;
 
-    // Test if the user is suspended
-    obj.suspended = (!model.attributes.status) ? true : false;
+    // Test if the user is suspended - there is no suspended status
+    obj.blocked = (model.attributes.status === 0) ? true : false;
 
     // Test if the user is active
-    obj.active = (function isActive(lastAccessSeconds) {
+    /*obj.active = (function isActive(lastAccessSeconds) {
       var today = new Date();
       var thisYear = today.getFullYear();
       var thisMonth = today.getMonth();
@@ -80,13 +80,14 @@ module.exports = (function() {
       }
 
       return false;
-    })(model.attributes.access);
+    })(model.attributes.access);*/
 
     obj.created = new Date(model.attributes.created * 1000);
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
     obj.phone = model.related('phone').attributes.field_phone_value;
     // obj.membershipType = model.related('membershipType').attributes.field_membership_type_value;
+    obj.active = false;
     obj.pending = false;
 
     // console.log(model.related('roles').models);
@@ -96,11 +97,13 @@ module.exports = (function() {
       var roleName = roleModels[i].attributes.name;
       roleArray[roleArray.length] = roleName;
 
+      if ((roleName.indexOf("anonymous") === -1) && (roleName.indexOf("authenticated") === -1) && (roleName.indexOf("guest") === -1) && (roleName.indexOf("pending") === -1)) obj.active = true;
+
       if (roleName.indexOf("pending") > -1) obj.pending = true;
     }
 
     obj.roles = roleArray;
-    obj.dob = model.related('dateOfBirth').attributes.field_date_of_birth_value;
+    obj.ageGrouping = model.related('ageGrouping').attributes.field_age_grouping_value;
     obj.gender = model.related('gender').attributes.field_gender_value;
 
     obj.sportsClub = model.related('sportsClub').attributes.field_sports_club_value;
@@ -223,8 +226,8 @@ module.exports = (function() {
     idAttribute: 'rid'
   });
 
-  var UserDateOfBirth = Bookshelf.Model.extend({
-    tableName: 'field_data_field_date_of_birth'
+  var UserAgeGrouping = Bookshelf.Model.extend({
+    tableName: 'field_data_field_age_grouping'
   });
 
   var UserGender = Bookshelf.Model.extend({
