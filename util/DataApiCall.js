@@ -413,12 +413,10 @@ function getMembershipRoster(relevantDate, done) {
  * @param relevantDate {date} - The date whose month will be used to fetch api
  * @param done {function} - The callback function of the form (err, data)
  */
-function getMonthlyMembership(relevantDate, done) {
+function getMonthlyMembership(relevantDate, region, done) {
+
   var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
   var newMemberSchema = ["number", "string", "string", "string", "string", "string"]
-
-  var overallLabels = ["New Members", "Total Members"];
-  var overallSchema = ["number", "number"];
 
   var genderBreakdownLabels = ["Male", "Female"];
   var genderBreakdownSchema = ["number", "number"];
@@ -426,8 +424,8 @@ function getMonthlyMembership(relevantDate, done) {
   var ageBreakdownLabels = ["Junior", "Youth", "Adult"];
   var ageBreakdownSchema = ["number", "number", "number"];
 
-  var statusBreakdownLabels = ["Pending", "Active", "InActive", "Suspended"];
-  var statusBreakdownSchema = ["number", "number", "number", "number"];
+  var statusBreakdownLabels = ["Pending", "Active", "Blocked"];
+  var statusBreakdownSchema = ["number", "number", "number"];
 
   var veteranBreakdownLabels = ["Total", "Disabled", "Active", "Retired"];
   var veteranBreakdownSchema = ["number", "number", "number", "number"];
@@ -437,7 +435,6 @@ function getMonthlyMembership(relevantDate, done) {
     var obj = {};
     // Table definitions
     obj.NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
-    obj.OverallCount = new xls.Table("Overall Members", overallSchema, overallLabels);
     obj.GenderBreakdown = new xls.Table("Gender Breakdown", genderBreakdownSchema, genderBreakdownLabels);
     obj.AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
     obj.StatusBreakdown = new xls.Table("Member Status Breakdown", statusBreakdownSchema, statusBreakdownLabels);
@@ -448,8 +445,9 @@ function getMonthlyMembership(relevantDate, done) {
 
   function yankDataArrayFromTable(clubName) {
     var desired = tables[clubName];
-    return [desired.GenderBreakdown, desired.AgeBreakdown, desired.StatusBreakdown, 
-              desired.VeteranBreakdown, desired.NewMemberSummary, desired.OverallCount];
+    return [desired.StatusBreakdown, desired.GenderBreakdown, 
+            desired.AgeBreakdown,
+            desired.VeteranBreakdown, desired.NewMemberSummary];
   } 
 
 
@@ -470,11 +468,6 @@ function getMonthlyMembership(relevantDate, done) {
         } 
 
         var numUsers = objects.length;
-        var monthlyTotals = {
-          statewide: 0,
-          nashville: 0,
-          memphis: 0
-        };
 
         for (var i = 0; i < numUsers; i++) {
           var user = objects[i];
@@ -483,16 +476,15 @@ function getMonthlyMembership(relevantDate, done) {
           var firstName = user.firstName || "unknown";
           var email = user.email || "unknown";
           var phone = user.phone || "unknown";
-          var roles = user.roles.join() || "unknown";
+          var roles = user.roles.join(", ") || "unknown";
           var sportsClub = getClubNameInContext(user.sportsClub);
 
           var newRow = [id, lastName, firstName, email, phone, roles];
 
           tables[sportsClub].NewMemberSummary.pushRow(newRow);
-          monthlyTotals[sportsClub]++;
         }
 
-        callback(null, monthlyTotals);
+        callback(null);
       });
     },
     function fetchInformationAboutEveryUser(callback) {
@@ -541,16 +533,22 @@ function getMonthlyMembership(relevantDate, done) {
         */
 
         var numUsers = objects.length;
-        var overallTotals = {
-          statewide: 0,
-          nashville: 0,
-          memphis: 0
-        };
 
         for (var i = 0; i < numUsers; i++) {
           var user = objects[i];
+
+          // Skip admin and guest
+          if (user.isAdmin || user.isGuest) {
+            continue;
+          }
+
           var sportsClub = getClubNameInContext(user.sportsClub);
-          overallTotals[sportsClub]++;
+
+          // If we're looking for statewide, might as well set entire code
+          // to fetch only statewide
+          if (region === "statewide") {
+            sportsClub = "statewide";
+          }
 
           /*
           console.log(user);
@@ -561,7 +559,19 @@ function getMonthlyMembership(relevantDate, done) {
           var ageCounts = ageCountsArrays[sportsClub];
           var statusCounts = statusCountsArrays[sportsClub];
           var veteranCounts = veteranCountsArrays[sportsClub];
+          var statusCounts = statusCountsArrays[sportsClub];
 
+
+          // --------------- Update status counts ----------------
+          // Index 0 is pending, index 2 is blocked, index 1 is standard
+          // active
+          if (user.pending) {
+            statusCounts[0]++;
+          } else if (user.blocked) {
+            statusCounts[2]++;
+          } else {
+            statusCounts[1]++;
+          }
 
           // --------------- Update gender counts ----------------
           // Gender information
@@ -573,40 +583,20 @@ function getMonthlyMembership(relevantDate, done) {
           }
 
           // --------------- Update age group counts ----------------
-          var birthDate = user.dob;
-          if (birthDate) {
-            var ageGroup = getAgeGroup(birthDate);
-            // console.log("Got age group: " + ageGroup);
-            if (ageGroup === "juniors") {
-              //console.log("Inc junior");
-              ageCounts[0]++;
-            } else if (ageGroup === "youth") {
-              //console.log("Inc Youth");
-              ageCounts[1]++;
-            } else if (ageGroup === "adults") {
-              //console.log("Inc Adult");
-              ageCounts[2]++;
-            }
-          }
 
+          var ageGroup = user.ageGroup;
+          console.log("Age group: " + ageGroup);
 
-          // --------------- Update status counts ----------------
-          // Possible Status: "Pending", "Active", "InActive", "Suspended"
-          // Check if the user is pending
-          if (user.pending) {
-            statusCounts[0]++;
-          }
-
-          // Check if the user is active
-          if (user.active) {
-            statusCounts[1]++;
-          } else {
-            statusCounts[2]++;
-          }
-
-          // Check if the user is suspended
-          if (user.suspended) {
-            statusCounts[3]++;
+          // console.log("Got age group: " + ageGroup);
+          if (ageGroup === "Junior") {
+            //console.log("Inc junior");
+            ageCounts[0]++;
+          } else if (ageGroup === "Youth") {
+            //console.log("Inc Youth");
+            ageCounts[1]++;
+          } else if (ageGroup === "Adult") {
+            //console.log("Inc Adult");
+            ageCounts[2]++;
           }
 
           // --------------- Update veteran counts ----------------
@@ -626,7 +616,7 @@ function getMonthlyMembership(relevantDate, done) {
 
         var sumAllIterator = function(accumulator, value) {
           return accumulator + value;
-        }
+        };
 
         var clubs = ["statewide", "nashville", "memphis"];
         for (var i = 0; i < clubs.length; i++) {
@@ -636,11 +626,21 @@ function getMonthlyMembership(relevantDate, done) {
           var statusCounts = statusCountsArrays[club];
           var veteranCounts = veteranCountsArrays[club];
 
+          // ----------------------- Appending Status information --------------------
+          console.log("Status counts");
+          console.log(statusCounts);
+          tables[club].StatusBreakdown.pushRow(statusCounts);
+          var statusSum = statusCounts.reduce(sumAllIterator);
+          var statusFrac = statusCounts.map(function(el) {
+            return (el / statusSum) * 100;
+          });
+          tables[club].StatusBreakdown.pushRow(statusFrac);
+
           // ----------------------- Appending Gender information --------------------
           tables[club].GenderBreakdown.pushRow(genderCounts);
           var genderSum = genderCounts.reduce(sumAllIterator); // get the sum of the elements
           var genderFrac = genderCounts.map(function(el) {
-            return el / genderSum;
+            return (el / genderSum) * 100;
           });
 
           console.log(genderFrac);
@@ -652,18 +652,11 @@ function getMonthlyMembership(relevantDate, done) {
 
           var ageSum = ageCounts.reduce(sumAllIterator);
           var ageFrac = ageCounts.map(function(el) {
-            return el / ageSum;
+            return (el / ageSum) * 100;
           });
 
           console.log(ageFrac);
           tables[club].AgeBreakdown.pushRow(ageFrac);
-
-          // ------------------------ Appending status information ---------------------
-          console.log("Pushing Status Counts");
-          console.log(statusCounts);
-          console.log(statusCounts.length);
-          console.log(tables[club].StatusBreakdown.length);
-          tables[club].StatusBreakdown.pushRow(statusCounts);
 
           // ------------------------ Appending veteran information ---------------------
           console.log("Pushing Veteran Counts");
@@ -671,39 +664,24 @@ function getMonthlyMembership(relevantDate, done) {
           tables[club].VeteranBreakdown.pushRow(veteranCounts);
         }
 
-        callback(null, overallTotals);
+        callback(null);
       });
     }
     // load counts information
-  ], function(err, counts) {
+  ], function(err) {
     // Counts will contain an array with the first entry being new users, the second entry being total users
     if (err) {
       done(err);
       return;
     } else {
 
-      var clubs = ["statewide", "nashville", "memphis"];
-      var entries = 2;
-      for (var i = 0; i < clubs.length; i++) {
-        var club = clubs[i];
-        tables[club].OverallCount.pushRow([counts[0][club], counts[1][club]]);
-      }
-
       console.log("Tables: ");
       console.log(tables);
 
       var data = {
-        statewide: {
-          name: "TNABA Monthly Membership Data - Statewide",
-          data: yankDataArrayFromTable("statewide")
-        },
-        nashville: {
-          name: "TNABA Monthly Membership Data - Nashville",
-          data: yankDataArrayFromTable("nashville")
-        },
-        memphis: {
-          name: "TNABA Monthly Membership Data - Memphis",
-          data: yankDataArrayFromTable("memphis")
+        sheet1: {
+          name: "TNABA Monthly Membership Data - " + region,
+          data: yankDataArrayFromTable(region)
         }
       };
 
@@ -738,15 +716,15 @@ module.exports = function(dataType, relevantDate, callback) {
     break;
 
     case "membership":
-    getMonthlyMembership(relevantDate, callback);
+    getMonthlyMembership(relevantDate, "statewide", callback);
     break;
 
     case "membershipNashville":
-    getNashvilleMembership(relevantDate, callback);
+    getMonthlyMembership(relevantDate, "nashville", callback);
     break;
 
     case "membershipMemphis":
-    getMemphisMembership(relevantDate, callback);
+    getMonthlyMembership(relevantDate, "memphis", callback);
     break;
 
     case "membershipRoster":
