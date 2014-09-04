@@ -400,11 +400,60 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
 function getMembershipRoster(relevantDate, done) {
   var memberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Active",
-                      "Age Group", "Blocked"];
-  var memberSchema = ["number", "string", "string", "string", "string", "boolean", "string", "boolean"];
+                      "Age Group", "Blocked", "Sports Club"];
+  var memberSchema = ["number", "string", "string", "string", "string", "boolean", "string", 
+                      "boolean", "string"];
 
   var overallLabels = ["New Members", "Total Members"];
-  var overallSchema = ["Number", "Number"];
+  var overallSchema = ["number", "number"];
+
+  var overallTable = new xls.Table("Overall Table", overallSchema, overallLabels);
+  var memberTable = new xls.Table("Member Table", memberSchema, memberLabels);
+
+  async.parallel([
+    function fetchRelevantMonthInformation(callback) {
+      User.loadUsersByCreatedMonth(relevantDate, function(err, users) {
+        if (err) {
+          return callback(err);
+        }
+
+        return callback(null, users.length);
+      });
+    },
+    function fetchAllUserInformation(callback) {
+      User.loadObjects(function(err, users) {
+        if (err) {
+          return callback(err);
+        }
+
+        for (var i = 0; i < users.length; i++) {
+          var user = users[i];
+          var newRow = [user.id, user.lastName, user.firstName, user.email, 
+                        user.phone, user.active,
+                        user.ageGroup, user.blocked, user.sportsClub];
+          memberTable.pushRow(newRow);
+        }
+
+        callback(null, users.length);
+      });
+    }
+  ], 
+  function uponCompletion(err, counts) {
+    if (err) {
+      return done(err);
+    }
+
+    overallTable.pushRow(counts);
+
+    var response = {
+      sheet1: {
+        name: "TNABA full member roster",
+        data: [overallTable, memberTable]
+      }
+    };
+
+    done(null, response);
+  });
 }
 
 /*
