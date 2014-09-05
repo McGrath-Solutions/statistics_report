@@ -27,6 +27,17 @@ User.loadObjects(function(err, objects) {
     console.error("Error: " + err);
   }
   console.log(objects);
+  
+  var count = 0;
+  for (var i = 0; i < objects.length; i++) {
+    var user = objects[i];
+    if (user.isAdmin || user.isGuest) {
+      count++;
+    }
+  }
+
+  console.log(count);
+  console.log(objects.length);
 });
 
 /*

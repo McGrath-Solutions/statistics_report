@@ -43,6 +43,10 @@ var getSportNameInContext = function(dbName) {
   }
 };
 
+var capitalizeString = function(string) {
+  return string[0].toUpperCase() + string.substring(1);
+}
+
 /* 
  * Get the club name of the sport in context of the report generator
  * ie. Converts the database club name to reports club name
@@ -102,10 +106,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
       RegionTable.pushObjectRow(sportsTotals);
     });
   };
-
-  var capitalizeString = function(string) {
-    return string[0].toUpperCase() + string.substring(1);
-  }
 
   /* Main program logic */
   var labelsTotal = ["# of activities", "Hours", "Juniors", "Youth",
@@ -187,15 +187,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
             // move on
             continue;
           }
-
-          // console.log(club);
-          // console.log(sport);
-
-          /*
-          console.log("Sport: " + sport);
-          console.log("Club: " + club);
-          console.log("Hours: " + numHours);
-          */
          
           /* Increment the total number of activities for the specified sport */
 
@@ -388,7 +379,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
       var data = {
         sheet1: {
-          name: "TNABA State Monthly Programming Report",
+          name: "TNABA Monthly Event Report - " + regionName,
           data: [TotalsTable, RegionTable]
         }
       }
@@ -398,7 +389,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
   });
 }
 
-function getMembershipRoster(relevantDate, done) {
+function getMembershipRoster(relevantDate, scope, done) {
   var memberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Active",
                       "Age Group", "Blocked", "Sports Club"];
   var memberSchema = ["number", "string", "string", "string", "string", "boolean", "string", 
@@ -499,7 +490,6 @@ function getMonthlyMembership(relevantDate, region, done) {
             desired.VeteranBreakdown, desired.NewMemberSummary];
   } 
 
-
   var tables = {
     "statewide": createMembershipInfoTables(),
     "nashville": createMembershipInfoTables(),
@@ -582,7 +572,7 @@ function getMonthlyMembership(relevantDate, region, done) {
         */
 
         var numUsers = objects.length;
-
+        console.log(numUsers);
         for (var i = 0; i < numUsers; i++) {
           var user = objects[i];
 
@@ -729,7 +719,7 @@ function getMonthlyMembership(relevantDate, region, done) {
 
       var data = {
         sheet1: {
-          name: "TNABA Monthly Membership Data - " + region,
+          name: "TNABA Monthly Membership Data - " + capitalizeString(region),
           data: yankDataArrayFromTable(region)
         }
       };
@@ -777,7 +767,11 @@ module.exports = function(dataType, relevantDate, callback) {
     break;
 
     case "membershipRoster":
-    getMembershipRoster(relevantDate, callback);
+    getMembershipRoster(relevantDate, "full", callback);
+    break;
+
+    case "membershipActiveRoster":
+    getMembershipRoster(relevantDate, "active", callback);
     break;
 
     default:
