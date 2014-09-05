@@ -391,15 +391,15 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
 function getMembershipRoster(relevantDate, scope, done) {
   var memberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Active",
-                      "Age Group", "Blocked", "Sports Club"];
+                      "Age Group", "Sports Club"];
   var memberSchema = ["number", "string", "string", "string", "string", "boolean", "string", 
-                      "boolean", "string"];
-
+                      "string"];
   var overallLabels = ["New Members", "Total Members"];
   var overallSchema = ["number", "number"];
 
-  var overallTable = new xls.Table("Overall Table", overallSchema, overallLabels);
-  var memberTable = new xls.Table("Member Table", memberSchema, memberLabels);
+  var overallTable = new xls.Table("Overall Counts", overallSchema, overallLabels);
+  var memberTable = new xls.Table("Members", memberSchema, memberLabels);
+  var blockedTable = new xls.Table("Blocked Members", memberSchema, memberLabels)
 
   async.parallel([
     function fetchRelevantMonthInformation(callback) {
@@ -417,15 +417,28 @@ function getMembershipRoster(relevantDate, scope, done) {
           return callback(err);
         }
 
+        var relUsers = 0;
         for (var i = 0; i < users.length; i++) {
           var user = users[i];
+          if (scope === "active") {
+            // Ignore pending users, admins and guests
+            if (user.pending || user.isGuest || user.isAdmin) {
+              continue;
+            } 
+          }
+
+          relUsers++;
           var newRow = [user.id, user.lastName, user.firstName, user.email, 
                         user.phone, user.active,
-                        user.ageGroup, user.blocked, user.sportsClub];
-          memberTable.pushRow(newRow);
+                        user.ageGroup, user.sportsClub];
+          if (user.blocked) {
+            blockedTable.pushRow(newRow);
+          } else {
+            memberTable.pushRow(newRow);
+          }
         }
 
-        callback(null, users.length);
+        callback(null, relUsers);
       });
     }
   ], 
@@ -438,8 +451,8 @@ function getMembershipRoster(relevantDate, scope, done) {
 
     var response = {
       sheet1: {
-        name: "TNABA full member roster",
-        data: [overallTable, memberTable]
+        name: "TNABA " + scope + " member roster",
+        data: [overallTable, memberTable, blockedTable]
       }
     };
 
