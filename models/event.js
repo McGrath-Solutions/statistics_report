@@ -222,6 +222,10 @@ function makeEvent() {
       withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
       'sportsClub', 'users']
     }).then(function(model) {
+      if (!model) {
+        return callback(null, null);
+      }
+
       var object = Event.initFromDatabaseObject(model);
       callback(null, object);
     }).catch(function(err) {

@@ -6,6 +6,7 @@
 var User = require('../models/user');
 var Event = require('../models/event');
 var Registration = require('../models/registration');
+var Attendance = require('../models/attendance');
 var util = require('util');
 var xls = require('./xlsutil');
 var async = require('async');
@@ -99,8 +100,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
     // Build Total Table
     _(counts.club).forEach(function(sportsTotals, sport) {
-      console.log("This counts: ");
-      console.log(util.inspect(sportsTotals));
       
 
       RegionTable.pushObjectRow(sportsTotals);
@@ -146,7 +145,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
   //console.log(counts);
 
   // Populate the counts array
-  async.waterfall([
+  async.parallel([
     function processEvents(callback) {
       Event.loadObjectsByMonth(relevantDate, function(err, objects) {
         if (err) {
@@ -170,7 +169,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
           // Statewide report includes all clubs. All clubs become statewide;
           
           if (region === "statewide") {
-            console.log("Is statewide report nbd, allowing all");
             var club = "statewide";
           } else {
             console.log("Checking if region " + region + " is equal to " + club);
@@ -194,177 +192,164 @@ function getMonthlyProgramming(relevantDate, region, done) {
           counts.totals.hours += numHours;
           counts["club"][sport].activities++;
           counts["club"][sport].hours += numHours;
-
-
-          // Prepare to pass the object to the next function in the waterfall
-          var nextObject = {};
-          nextObject.sport = sport;
-          nextObject.club = club;
-          nextObject.numHours = numHours;
-
-          for (var j = 0; j < object.registrations.length; j++) {
-            //console.log("In registrations " + j);
-            registrations[registrations.length] = {
-              sport: sport,
-              club: club,
-              numHours: numHours,
-              id: object.registrations[j].id
-            }
-
-            //console.log(registrations.length);
-          }
         }
 
         //console.log("Registrations: " + registrations);
-        callback(null, registrations);
+        callback(null);
       });
     },
 
-    /* Process registrations and update coutns, then give the advanced 
-     * Registration information to 
-     * Process users */
-    function processRegistrations(regList, callback) {
-      //console.log("Reg list: " + util.inspect(regList));
-      //console.log("At registrations");
-      //console.log(regList.length);
+    // /* Process registrations and update coutns, then give the advanced 
+    //  * Registration information to 
+    //  * Process users */
+    // function processRegistrations(regList, callback) {
+    //   var funcList = [];
+    //   for (var i = 0; i < regList.length; i++) {
+    //     var reg = regList[i];
+    //     // Get an array of functions related to each registration
+    //     funcList[i] = (function(reg) {
+    //       return function(cbinterior) {
+    //         Registration.loadRegistrationById(reg.id, function(err, registration) {
+    //           if (err) {
+    //             // Error is sent to callback
+    //             cbinterior(err);
+    //           } else {
+    //             // Slyly insert more data for registration user data
+    //             registration.club = reg.club;
+    //             registration.sport = reg.sport;
+    //             registration.numHours = reg.numHours;
 
-      var funcList = [];
-      for (var i = 0; i < regList.length; i++) {
-        var reg = regList[i];
-        // Get an array of functions related to each registration
-        funcList[i] = (function(reg) {
-          return function(cbinterior) {
-            Registration.loadRegistrationById(reg.id, function(err, registration) {
-              if (err) {
-                // Error is sent to callback
-                cbinterior(err);
-              } else {
-                // Process the given registration
-                //console.log("Registration checking");
-                //console.log(reg);
-                
-                /* Legacy volunteer check. New volunteer check moved down ot 
-                 * processRegistrationUsers below                              */
-                /*
-                if (registration.type === "Volunteer") {
-                  // Incrment the number of volunteers, if applicable
-                  counts.totals[reg.club].volunteers++;
-                  counts[reg.club][reg.sport].volunteers++; 
+    //             cbinterior(null, registration);
+    //           }
+    //         });
+    //       }
+    //     })(reg);
+    //   }
 
-                  // This is probably not the right way to calculate volunteer hours
-                  counts.totals[reg.club].volunteerHours += reg.numHours;
-                  counts[reg.club][reg.sport].volunteerHours += reg.numHours;
-                }
-                */
+    //   //console.log(funcList);
 
-                // Slyly insert more data for registration user data
-                registration.club = reg.club;
-                registration.sport = reg.sport;
-                registration.numHours = reg.numHours;
-
-                cbinterior(null, registration);
-              }
-            });
-          }
-        })(reg);
-      }
-
-      //console.log(funcList);
-
-      async.parallel(funcList, function(err, registrations) {
+    //   async.parallel(funcList, function(err, registrations) {
+    //     if (err) {
+    //       callback(err);
+    //     } else {
+    //       callback(null, registrations)
+    //     }
+    //   });
+    // },
+    function processAttendance(callback) {
+      Attendance.loadObjectsByMonth(relevantDate, function(err, objects) {
         if (err) {
-          callback(err);
-        } else {
-          callback(null, registrations)
+          return callback(err);
         }
-      });
-    },
 
-    /* Process the users associated with each registration */
-    function processRegistrationUsers(registrations, callback) {
-      //console.log("At users");
-      //console.log("Registrations: " + registrations);
-      var funcList = [];
-      for (var i = 0; i < registrations.length; i++) {
-        var registration = registrations[i];
-        funcList[i] = (function(registration) {
-          return function(cbinterior) {
-            if (!registration.uid) {
-              // The registration is anonymous. We will consider this user a guest.
+        for (var regNum = 0; regNum < objects.length; regNum++) {
+          var registration = objects[regNum];
+          var club = getClubNameInContext(registration.club);
+
+          var numHours = getDuration(registration.start, registration.end);
+
+          if (!(region === "statewide" || (region === club))) {
+            continue;
+          }
+
+          for (var j = 0; j < registration.participants.length; j++) {
+            var user = registration.participants[j];
+
+            if (user.isVeteran) {
+              counts.totals.veterans++;
+              counts["club"][registration.sport].veterans++;
+            }
+
+            if (user.isGuest) {
               counts.totals.guests++;
               counts["club"][registration.sport].guests++;
-              cbinterior(null);
-            } else {
-              Registration.loadUserObject(registration, function(err, user) {
-                if (err) {
-                  // console.log("ERROR THAT CAUSE CB TWICE: " + err);
-                  return cbinterior(err);
-                } else {
-                  // Check if the user is veteran
-                  //console.log("User checking");
-                  //console.log(registration);
-
-                  if (user.isVeteran) {
-                    counts.totals.veterans++;
-                    counts["club"][registration.sport].veterans++;
-                  }
-
-                  /*
-                  var type = user.membershipType;
-                  if (type === "Volunteer") {
-                    // volunteer code
-                    // Incrment the number of volunteers, if applicable
-                    counts.totals[registration.club].volunteers++;
-                    counts[registration.club][registration.sport].volunteers++; 
-
-                    // This is probably not the right way to calculate volunteer hours
-                    counts.totals[registration.club].volunteerHours += registration.numHours;
-                    counts[registration.club][registration.sport].volunteerHours += registration.numHours;
-                  } else if (type === "Guest" || !type) {
-                    // By default, undefined users will be guests
-                    counts.totals[registration.club].guests++;
-                    counts[registration.club][registration.sport].guests++;
-                  } else {
-                    var ageGroup = type.toLowerCase() + "s";
-                    counts.totals[registration.club][ageGroup]++;
-                    counts[registration.club][registration.sport][ageGroup]++;
-                  }
-                  */
-                   
-                  var roles = user.roles;
-                  for (var i = 0; i < roles.length; i++) {
-                    if (roles[i] === "volunteer") {
-                      // Incrment the number of volunteers, if applicable
-                      counts.totals.volunteers++;
-                      counts["club"][registration.sport].volunteers++; 
-
-                      // This is probably not the right way to calculate volunteer hours
-                      counts.totals.volunteerHours += registration.numHours;
-                      counts["club"][registration.sport].volunteerHours += registration.numHours;
-                      break;
-                    }
-                  }
-
-                  var userAgeGroup = user.ageGroup;
-                  counts.totals[userAgeGroup]++;
-                  counts["club"][registration.sport][userAgeGroup]++;
-
-                  cbinterior(null);
-                }
-              });
             }
-          }
-        })(registration);
-      }
 
-      async.parallel(funcList, function(err) {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null);
+            var roles = user.roles;
+            for (var i = 0; i < roles.length; i++) {
+              if (roles[i] === "volunteer") {
+                // Incrment the number of volunteers, if applicable
+                counts.totals.volunteers++;
+                counts["club"][registration.sport].volunteers++; 
+
+                // This is probably not the right way to calculate volunteer hours
+                counts.totals.volunteerHours += numHours;
+                counts["club"][registration.sport].volunteerHours += numHours;
+                break;
+              }
+            }
+
+
+            var userAgeGroup = user.ageGroup;
+            counts.totals[userAgeGroup]++;
+            counts["club"][registration.sport][userAgeGroup]++;
+          }
+
         }
+
+        callback(null);
       });
     }
+
+    // /* Process the users associated with each registration */
+    // function processRegistrationUsers(registrations, callback) {
+    //   //console.log("At users");
+    //   //console.log("Registrations: " + registrations);
+    //   var funcList = [];
+    //   for (var i = 0; i < registrations.length; i++) {
+    //     var registration = registrations[i];
+    //     funcList[i] = (function(registration) {
+    //       return function(cbinterior) {
+    //         if (!registration.uid) {
+    //           // The registration is anonymous. We will consider this user a guest.
+    //           counts.totals.guests++;
+    //           counts["club"][registration.sport].guests++;
+    //           cbinterior(null);
+    //         } else {
+    //           Registration.loadUserObject(registration, function(err, user) {
+    //             if (err) {
+    //               // console.log("ERROR THAT CAUSE CB TWICE: " + err);
+    //               return cbinterior(err);
+    //             } else {
+    //               if (user.isVeteran) {
+    //                 counts.totals.veterans++;
+    //                 counts["club"][registration.sport].veterans++;
+    //               }
+
+    //               var roles = user.roles;
+    //               for (var i = 0; i < roles.length; i++) {
+    //                 if (roles[i] === "volunteer") {
+    //                   // Incrment the number of volunteers, if applicable
+    //                   counts.totals.volunteers++;
+    //                   counts["club"][registration.sport].volunteers++; 
+
+    //                   // This is probably not the right way to calculate volunteer hours
+    //                   counts.totals.volunteerHours += registration.numHours;
+    //                   counts["club"][registration.sport].volunteerHours += registration.numHours;
+    //                   break;
+    //                 }
+    //               }
+
+    //               var userAgeGroup = user.ageGroup;
+    //               counts.totals[userAgeGroup]++;
+    //               counts["club"][registration.sport][userAgeGroup]++;
+
+    //               cbinterior(null);
+    //             }
+    //           });
+    //         }
+    //       }
+    //     })(registration);
+    //   }
+
+    //   async.parallel(funcList, function(err) {
+    //     if (err) {
+    //       callback(err);
+    //     } else {
+    //       callback(null);
+    //     }
+    //   });
+    // }
 
   ], function(err) {
     if (err) {
