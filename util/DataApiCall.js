@@ -198,44 +198,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
         callback(null);
       });
     },
-
-    // /* Process registrations and update coutns, then give the advanced 
-    //  * Registration information to 
-    //  * Process users */
-    // function processRegistrations(regList, callback) {
-    //   var funcList = [];
-    //   for (var i = 0; i < regList.length; i++) {
-    //     var reg = regList[i];
-    //     // Get an array of functions related to each registration
-    //     funcList[i] = (function(reg) {
-    //       return function(cbinterior) {
-    //         Registration.loadRegistrationById(reg.id, function(err, registration) {
-    //           if (err) {
-    //             // Error is sent to callback
-    //             cbinterior(err);
-    //           } else {
-    //             // Slyly insert more data for registration user data
-    //             registration.club = reg.club;
-    //             registration.sport = reg.sport;
-    //             registration.numHours = reg.numHours;
-
-    //             cbinterior(null, registration);
-    //           }
-    //         });
-    //       }
-    //     })(reg);
-    //   }
-
-    //   //console.log(funcList);
-
-    //   async.parallel(funcList, function(err, registrations) {
-    //     if (err) {
-    //       callback(err);
-    //     } else {
-    //       callback(null, registrations)
-    //     }
-    //   });
-    // },
     function processAttendance(callback) {
       Attendance.loadObjectsByMonth(relevantDate, function(err, objects) {
         if (err) {
@@ -290,66 +252,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
         callback(null);
       });
     }
-
-    // /* Process the users associated with each registration */
-    // function processRegistrationUsers(registrations, callback) {
-    //   //console.log("At users");
-    //   //console.log("Registrations: " + registrations);
-    //   var funcList = [];
-    //   for (var i = 0; i < registrations.length; i++) {
-    //     var registration = registrations[i];
-    //     funcList[i] = (function(registration) {
-    //       return function(cbinterior) {
-    //         if (!registration.uid) {
-    //           // The registration is anonymous. We will consider this user a guest.
-    //           counts.totals.guests++;
-    //           counts["club"][registration.sport].guests++;
-    //           cbinterior(null);
-    //         } else {
-    //           Registration.loadUserObject(registration, function(err, user) {
-    //             if (err) {
-    //               // console.log("ERROR THAT CAUSE CB TWICE: " + err);
-    //               return cbinterior(err);
-    //             } else {
-    //               if (user.isVeteran) {
-    //                 counts.totals.veterans++;
-    //                 counts["club"][registration.sport].veterans++;
-    //               }
-
-    //               var roles = user.roles;
-    //               for (var i = 0; i < roles.length; i++) {
-    //                 if (roles[i] === "volunteer") {
-    //                   // Incrment the number of volunteers, if applicable
-    //                   counts.totals.volunteers++;
-    //                   counts["club"][registration.sport].volunteers++; 
-
-    //                   // This is probably not the right way to calculate volunteer hours
-    //                   counts.totals.volunteerHours += registration.numHours;
-    //                   counts["club"][registration.sport].volunteerHours += registration.numHours;
-    //                   break;
-    //                 }
-    //               }
-
-    //               var userAgeGroup = user.ageGroup;
-    //               counts.totals[userAgeGroup]++;
-    //               counts["club"][registration.sport][userAgeGroup]++;
-
-    //               cbinterior(null);
-    //             }
-    //           });
-    //         }
-    //       }
-    //     })(registration);
-    //   }
-
-    //   async.parallel(funcList, function(err) {
-    //     if (err) {
-    //       callback(err);
-    //     } else {
-    //       callback(null);
-    //     }
-    //   });
-    // }
 
   ], function(err) {
     if (err) {
@@ -525,12 +427,6 @@ function getMonthlyMembership(relevantDate, region, done) {
       });
     },
     function fetchInformationAboutEveryUser(callback) {
-      /*
-      var genderCounts = [0, 0]; // Counts for males and females
-      var ageCounts = [0, 0, 0]; // Counts for Junior, Youth and Adult
-      var statusCounts = [0, 0, 0, 0]; // Counts of user status
-      var veteranCounts = [0, 0, 0, 0]; // Counts of veterans
-      */
 
       function genCounts(len) {
         return {
@@ -564,11 +460,6 @@ function getMonthlyMembership(relevantDate, region, done) {
           return;
         } 
 
-        /*
-        console.log("Objects: ");
-        console.log(objects);
-        */
-
         var numUsers = objects.length;
         console.log(numUsers);
         for (var i = 0; i < numUsers; i++) {
@@ -586,11 +477,6 @@ function getMonthlyMembership(relevantDate, region, done) {
           if (region === "statewide") {
             sportsClub = "statewide";
           }
-
-          /*
-          console.log(user);
-          console.log(sportsClub);
-          */
 
           var genderCounts = genderCountsArrays[sportsClub];
           var ageCounts = ageCountsArrays[sportsClub];
