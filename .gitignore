@@ -40,16 +40,7 @@ node_modules
 
 
 ### Bower ###
-bower_components
-public/bootstrap
-public/jquery
-public/angular
-public/lodash
-public/reports-generator
-public/requirejs
-public/FileSaver.js
-public/js-xlsx
-public/jspdf
+public/bower_components
 
 ## Personal ##
 test

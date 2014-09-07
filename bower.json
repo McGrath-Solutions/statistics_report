@@ -14,9 +14,9 @@
   ],
   "dependencies": {
     "bootstrap": "latest",
-    "jquery": "latest",
-    "angular": "latest",
-    "reports-generator": "0.1.5"
+    "jquery": "~2.1.1",
+    "reports-generator": "~0.1.5",
+    "requirejs": "~2.1.14"
   },
   "license": "MIT",
   "private": true,

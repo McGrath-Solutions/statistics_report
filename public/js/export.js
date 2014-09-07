@@ -2,8 +2,8 @@ require({
   /* Base url in directory above */
   baseUrl: "../",
   paths: {
-    jquery: "jquery/dist/jquery.min",
-    main: "reports-generator/dist/compiled-generator"
+    jquery: "bower_components/jquery/dist/jquery.min",
+    main: "bower_components/reports-generator/dist/compiled-generator"
   }
 },
 ['jquery', 'main'], 
