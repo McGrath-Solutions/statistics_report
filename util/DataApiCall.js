@@ -355,6 +355,9 @@ function getMembershipRoster(relevantDate, scope, done) {
  */
 function getMonthlyMembership(relevantDate, region, done) {
 
+  var overallLabels = ["New Members this Month", "Total Members"];
+  var overallSchema = ["number", "number"];
+
   var newMemberLabels = ["ID#", "Last Name", "First Name", "Email Address", "Phone Number", "Status"];
   var newMemberSchema = ["number", "string", "string", "string", "string", "string"]
 
@@ -374,6 +377,7 @@ function getMonthlyMembership(relevantDate, region, done) {
   function createMembershipInfoTables() {
     var obj = {};
     // Table definitions
+    obj.OverallTable = new xls.Table("Overall Counts", overallSchema, overallLabels);
     obj.NewMemberSummary = new xls.Table("New Member Information", newMemberSchema, newMemberLabels);
     obj.GenderBreakdown = new xls.Table("Gender Breakdown", genderBreakdownSchema, genderBreakdownLabels);
     obj.AgeBreakdown = new xls.Table("Age Breakdown", ageBreakdownSchema, ageBreakdownLabels);
@@ -385,7 +389,7 @@ function getMonthlyMembership(relevantDate, region, done) {
 
   function yankDataArrayFromTable(clubName) {
     var desired = tables[clubName];
-    return [desired.StatusBreakdown, desired.GenderBreakdown, 
+    return [desired.OverallTable, desired.StatusBreakdown, desired.GenderBreakdown, 
             desired.AgeBreakdown,
             desired.VeteranBreakdown, desired.NewMemberSummary];
   } 
@@ -423,7 +427,7 @@ function getMonthlyMembership(relevantDate, region, done) {
           tables[sportsClub].NewMemberSummary.pushRow(newRow);
         }
 
-        callback(null);
+        callback(null, tables[region].NewMemberSummary.entries);
       });
     },
     function fetchInformationAboutEveryUser(callback) {
@@ -461,6 +465,7 @@ function getMonthlyMembership(relevantDate, region, done) {
         } 
 
         var numUsers = objects.length;
+        var relevantUsers = 0;
         console.log(numUsers);
         for (var i = 0; i < numUsers; i++) {
           var user = objects[i];
@@ -476,6 +481,10 @@ function getMonthlyMembership(relevantDate, region, done) {
           // to fetch only statewide
           if (region === "statewide") {
             sportsClub = "statewide";
+          }
+
+          if (sportsClub === region) {
+            relevantUsers++;
           }
 
           var genderCounts = genderCountsArrays[sportsClub];
@@ -587,19 +596,22 @@ function getMonthlyMembership(relevantDate, region, done) {
           tables[club].VeteranBreakdown.pushRow(veteranCounts);
         }
 
-        callback(null);
+        callback(null, relevantUsers);
       });
     }
     // load counts information
-  ], function(err) {
+  ], function(err, results) {
     // Counts will contain an array with the first entry being new users, the second entry being total users
     if (err) {
       done(err);
       return;
     } else {
 
+      tables[region].OverallTable.pushRow(results);
+      console.log(results);
+
       console.log("Tables: ");
-      console.log(tables);
+      console.log(tables[region]);
 
       var data = {
         sheet1: {

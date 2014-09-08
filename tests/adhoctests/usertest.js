@@ -26,18 +26,28 @@ User.loadObjects(function(err, objects) {
   if (err) {
     console.error("Error: " + err);
   }
-  console.log(objects);
+  // console.log(objects);
   
   var count = 0;
+  var mem = 0;
+  var nash = 0;
   for (var i = 0; i < objects.length; i++) {
     var user = objects[i];
     if (user.isAdmin || user.isGuest) {
       count++;
+    } else {
+      if (user.sportsClub === "Memphis") {
+        mem++;
+      } else if (user.sportsClub === "Nashville") {
+        nash++;
+      }
     }
   }
 
-  console.log(count);
-  console.log(objects.length);
+  console.log(count + " special (non-users)");
+  console.log(mem + " Memphis club members");
+  console.log(nash + " Nashville club members"); 
+  console.log(objects.length + " total users");
 });
 
 /*
