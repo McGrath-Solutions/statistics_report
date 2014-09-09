@@ -199,6 +199,28 @@ function getMonthlyProgramming(relevantDate, region, done) {
       });
     },
     function processAttendance(callback) {
+      var memo = {};
+
+      var isRemembered = function(sport, user) {
+        if (!memo[sport]) {
+          return false;
+        }
+
+        return memo[sport].user == true;
+      };
+
+      var remember = function(sport, user) {
+        if (!isRemembered(sport, user)) {
+          if (!memo[sport]) {
+            memo[sport] = {};
+          }
+
+          memo[sport][user] = true;
+        } else {
+          callback(new Error("Remember called twice on same user"));
+        }
+      }
+
       Attendance.loadObjectsByMonth(relevantDate, function(err, objects) {
         if (err) {
           return callback(err);
@@ -216,6 +238,13 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
           for (var j = 0; j < registration.participants.length; j++) {
             var user = registration.participants[j];
+
+            // Ensure that each user is only processed once per sport
+            if (!isRemembered(registration.sport, user.id)) {
+              remember(registration.sport, user.id);
+            } else {
+              continue;
+            }
 
             if (user.isVeteran) {
               counts.totals.veterans++;
