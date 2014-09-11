@@ -82,7 +82,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
   var genCountsObject = function(title) {
     var obj = {name: title, activities: 0, hours: 0, Junior: 0, Youth: 0, Adult: 0, veterans: 0,
                guests: 0, volunteers: 0,
-               volunteerHours: 0};
+               staffHours: 0};
 
     return obj;
   };
@@ -109,7 +109,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
   /* Main program logic */
   var labelsTotal = ["# of activities", "Hours", "Juniors", "Youth",
                      "Adult", "Veterans", "Guests", "# of Volunteer Staff",
-                      "Volunteer Hours"];
+                      "Staff Hours"];
   // The schema
   var schema = ["string", "number", "number", 
                 "number", "number", "number", "number",
@@ -118,7 +118,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
   // Labels for the monthly report per region
   var labelsMonthly = ["Program", "# of activities", "Hours", "Juniors", "Youth", "Adult", 
                       "Veterans", "Guests", "# of Volunteer Staff",
-                      "Volunteer Hours"];
+                      "Staff Hours"];
 
   // Tables
   var TotalsTable = new xls.Table("Monthly Totals", schema.slice(1), labelsTotal);
@@ -178,7 +178,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
             }
           }
 
-          var numHours = getDuration(object.start, object.end);
+          var numHours = object.hours;
 
           if (!sport) {
             // An undefined sport means don't bother with this one, skip it and
@@ -192,6 +192,13 @@ function getMonthlyProgramming(relevantDate, region, done) {
           counts.totals.hours += numHours;
           counts["club"][sport].activities++;
           counts["club"][sport].hours += numHours;
+
+          counts.totals.volunteers += object.volunteers;
+          counts["club"][sport].volunteers += object.volunteers;
+
+          counts.totals.staffHours += object.staffHours;
+          counts["club"][sport].staffHours  += object.staffHours;
+
         }
 
         //console.log("Registrations: " + registrations);
@@ -230,8 +237,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
           var registration = objects[regNum];
           var club = getClubNameInContext(registration.club);
 
-          var numHours = getDuration(registration.start, registration.end);
-
           if (!(region === "statewide" || (region === club))) {
             continue;
           }
@@ -241,10 +246,6 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
             // Ensure that each user is only processed once per sport
             if (!isRemembered(registration.sport, user.id)) {
-              console.log("The system could not find " + user.id);
-              console.log("In sport " + registration.sport);
-              console.log("In ");
-              console.log(memo[registration.sport]);
               remember(registration.sport, user.id);
             } else {
               continue;
@@ -261,6 +262,9 @@ function getMonthlyProgramming(relevantDate, region, done) {
             }
 
             var roles = user.roles;
+
+            // Derpy volunteer calculation
+            /*
             for (var i = 0; i < roles.length; i++) {
               if (roles[i] === "volunteer") {
                 // Incrment the number of volunteers, if applicable
@@ -273,6 +277,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
                 break;
               }
             }
+            */
 
 
             var userAgeGroup = user.ageGroup;

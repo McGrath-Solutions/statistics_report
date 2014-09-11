@@ -15,6 +15,9 @@ var User = require('./user');
 // Event object. 
 function makeEvent() {
 
+  var related = ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
+      'sportsClub', 'users', 'hours', 'volunteers', 'staffHours']
+
   // bookshelf database model declarations
   // EventNode is the primary database
   var EventNode = bookshelf.Model.extend({
@@ -46,7 +49,29 @@ function makeEvent() {
     }, 
     users: function() {
       return this.hasMany(User, "entity_id").through(Registration.RegistrationNode, "uid");
+    },
+    hours: function() {
+      return this.hasOne(EventHours, "entity_id");
+    },
+    volunteers: function() {
+      return this.hasOne(VolunteerCount, "entity_id");
+    },
+    staffHours: function() {
+      return this.hasOne(StaffHours, "entity_id");
     }
+  });
+
+  // hours
+  var EventHours = bookshelf.Model.extend({
+    tableName: "field_data_field_program_hours"
+  });
+
+  var VolunteerCount = bookshelf.Model.extend({
+    tableName: "field_data_field_number_of_volunteers"
+  });
+
+  var StaffHours = bookshelf.Model.extend({
+    tableName: "field_data_field_staff_hours"
   });
 
   // Database table for Event Description
@@ -103,6 +128,10 @@ function makeEvent() {
     // Registration is expected to be a Javascript object with fields of
     // Registration
     this.registrations = initializationObject.registrations;
+
+    this.hours = initializationObject.hours;
+    this.volunteers = initializationObject.volunteers;
+    this.staffHours = initializationObject.staffHours;
   }
 
   // Event Export objects
@@ -136,6 +165,9 @@ function makeEvent() {
     initObject.sport = model.related('sport').attributes.field_event_sport_value;
     initObject.type = model.related('type').attributes.field_event_type_value;
     initObject.club = model.related('sportsClub').attributes.field_sports_club_event_value;
+    initObject.hours = model.related('hours').attributes.field_program_hours_value;
+    initObject.volunteers = model.related('volunteers').attributes.field_number_of_volunteers_value;
+    initObject.staffHours = model.related('staffHours').attributes.field_staff_hours_value;
 
     //console.log("Club info: ");
     //console.log(model.related('sportsClub').attributes);
@@ -219,8 +251,7 @@ function makeEvent() {
 
   Event.loadEventObjectById = function(id, callback) {
     new EventNode({nid: id}).fetch({
-      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
-      'sportsClub', 'users']
+      withRelated: related
     }).then(function(model) {
       if (!model) {
         return callback(null, null);
@@ -238,8 +269,7 @@ function makeEvent() {
   // TODO: write as a promise
   Event.loadObjects = function(callback) {
     new EventNode().query('where', 'type','=', 'event').fetchAll({
-      withRelated: ['description', 'date', 'location', 'coordinator', 'sport', 'type', 'registrations', 
-      'sportsClub', 'users']
+      withRelated: related
     }).then(function(Collection) {
       var models = Collection.models;
       var objects = [];

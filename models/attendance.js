@@ -173,6 +173,9 @@ module.exports = (function() {
             results[i].club = object.club;
             results[i].start = object.start;
             results[i].end = object.end;
+            results[i].hours = object.hours;
+            results[i].volunteers = object.volunteers;
+            results[i].staffHours = object.staffHours;
 
             cb();
           })
