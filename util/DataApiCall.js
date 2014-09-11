@@ -206,7 +206,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
           return false;
         }
 
-        return memo[sport].user == true;
+        return memo[sport][user] == true;
       };
 
       var remember = function(sport, user) {
@@ -241,6 +241,10 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
             // Ensure that each user is only processed once per sport
             if (!isRemembered(registration.sport, user.id)) {
+              console.log("The system could not find " + user.id);
+              console.log("In sport " + registration.sport);
+              console.log("In ");
+              console.log(memo[registration.sport]);
               remember(registration.sport, user.id);
             } else {
               continue;
