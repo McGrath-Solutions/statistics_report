@@ -17,6 +17,7 @@ var user = require('./routes/user');
 var statistics = require('./routes/statistics');
 
 var http = require('http');
+var https = require('https');
 var path = require('path');
 
 var app = express();
@@ -89,3 +90,12 @@ app.get('/download/:reportName', user.ensureAuthenticated, user.ensurePrivileged
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
+
+if ('production' === app.get('env')) {
+  var sslconfig = require('sslconfig');
+  var options = {
+    key: fs.readFileSync(sslconfig.key),
+    cert: fs.readFileSync(sslconfig.cert)
+  }
+  https.createServer(options, app).listen(443);
+}
