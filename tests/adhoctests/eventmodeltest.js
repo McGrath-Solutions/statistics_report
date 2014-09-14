@@ -9,6 +9,13 @@ var printstuff = function(err, models) {
     //console.log(typeof model);
     console.log(models[i]);
   }
+
+  for (var i = 0; i < models.length; i++) {
+    if (models[i].sport === "Bowling") {
+      console.log("BOWLING ALERT");
+      console.log(models[i]);
+    }
+  }
 }
 
 
