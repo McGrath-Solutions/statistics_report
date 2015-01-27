@@ -86,7 +86,7 @@ exports.ensureAuthenticated = function(req, res, next) {
     return next();
   }
 
-  res.redirect('/login');
+  res.redirect('login');
 };
 
 /*
