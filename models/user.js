@@ -137,7 +137,7 @@ module.exports = (function() {
     new User({uid: userId}).fetch({
       withRelated: relatedProperties
     }).then(function(model) {
-      // console.log(model)
+      console.log("The model here is: " + model)
       var object = User.initFromDatabaseObject(model);
 
       callback(null, object);

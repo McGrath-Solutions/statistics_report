@@ -135,7 +135,8 @@ function getMonthlyProgramming(relevantDate, region, done) {
   delete counts.totals["name"];
 
   // Generate Counts For Individual Sports
-  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball', 'Achilles', 'BR dancing', 'Golf', 
+  var sports = ['Bowling', 'Cycling', 'Game Night', 'Goalball Tournament',
+		'Goalball Practice', 'Achilles', 'BR dancing', 'Golf', 
                 'Beeper Kickball',
                 'Health Check', 'Exercise and Yoga', 'Golf', 'Conference', 'Other'];
   for (var i = 0; i < sports.length; i++) {
@@ -163,7 +164,8 @@ function getMonthlyProgramming(relevantDate, region, done) {
           // Process the event object data
           var object = objects[i];
 
-          var sport = getSportNameInContext(object.sport);
+          //var sport = getSportNameInContext(object.sport);
+	  var sport = object.sport;
           var club = getClubNameInContext(object.club);
           
           // Statewide report includes all clubs. All clubs become statewide;
@@ -187,6 +189,8 @@ function getMonthlyProgramming(relevantDate, region, done) {
           }
          
           /* Increment the total number of activities for the specified sport */
+	
+	  console.log("Activities count sport: %s", sport);
 
           counts.totals.activities++;
           counts.totals.hours += numHours;
@@ -281,17 +285,21 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
 
             var userAgeGroup = user.ageGroup;
+	    console.log("Sport: %s, Age group: %s", registration.sport, userAgeGroup);	
+
             counts.totals[userAgeGroup]++;
             counts["club"][registration.sport][userAgeGroup]++;
           }
 
         }
-
+	
+	console.log("ending attendance callback here");
         callback(null);
       });
     }
 
   ], function(err) {
+    console.log("In building callback here");
     if (err) {
       console.log("ERROR");
       console.log(err);
