@@ -188,7 +188,7 @@ function($, ReportsGenerator) {
 
       ready = false;
       var dateString = Number(monthSelected + 1) + "-1-" + yearSelected;
-      var url = "/api/" + focusedName + "/" + dateString;
+      var url = "/reports/api/" + focusedName + "/" + dateString;
       console.log(dateString);
 
       $.ajax({
