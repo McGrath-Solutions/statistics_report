@@ -20,7 +20,12 @@ var async = require('async');
  *          {string} The string value of the user's drupal session cookie
  */
 var getCookieInformation = function(cookies) {
-  var header = 'SESS';
+  // Comment this segment out if secure
+  // var header = 'SESS';
+
+  // Comment this segment out if insecue
+  var header = 'SSESS'
+
   var keys = Object.keys(cookies);
   for (var i = 0; i < keys.length; i++) {
     if (keys[i].indexOf(header) === 0) {

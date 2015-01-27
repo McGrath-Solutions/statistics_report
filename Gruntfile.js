@@ -9,7 +9,7 @@ module.exports = function(grunt) {
         src: [
           "views/*.jade"
         ],
-        ignorePath: '../public'
+        ignorePath: '../public/'
       }
     },
     uglify: {
