@@ -354,7 +354,8 @@ function getMembershipRoster(relevantDate, scope, done) {
           var user = users[i];
           if (scope === "active") {
             // Ignore pending users, admins and guests
-            if (user.pending || user.isGuest || user.isAdmin) {
+            if (user.pending || user.isGuest || user.isAdmin
+                  || user.isVolunteer || user.isRenew) {
               continue;
             } 
           }
@@ -513,15 +514,13 @@ function getMonthlyMembership(relevantDate, region, done) {
         var relevantUsers = 0;
         console.log(numUsers);
         for (var i = 0; i < numUsers; i++) {
-
-          
-
           var user = objects[i];
           console.log(user);
 
           // Skip admin and guest
           if (user.isAdmin || user.isGuest || user.pending || user.isVolunteer
                 || user.isRenew) {
+            if (user.pending) statusCounts[0]++;
             continue;
           }
 
@@ -547,9 +546,7 @@ function getMonthlyMembership(relevantDate, region, done) {
           // --------------- Update status counts ----------------
           // Index 0 is pending, index 2 is blocked, index 1 is standard
           // active
-          if (user.pending) {
-            statusCounts[0]++;
-          } else if (user.blocked) {
+          if (user.blocked) {
             statusCounts[2]++;
           } else {
             statusCounts[1]++;
