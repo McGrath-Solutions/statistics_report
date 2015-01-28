@@ -520,7 +520,7 @@ function getMonthlyMembership(relevantDate, region, done) {
           console.log(user);
 
           // Skip admin and guest
-          if (user.isAdmin || user.isGuest) {
+          if (user.isAdmin || user.isGuest || user.pending || user.isVolunteer) {
             continue;
           }
 
@@ -531,10 +531,6 @@ function getMonthlyMembership(relevantDate, region, done) {
           if (region === "statewide") {
             sportsClub = "statewide";
           }
-
-          // Helper function to test if a given user is considered 
-          // active (not members with volunteer or renew)
-          var userIsCounted = (!user.pending) && (!user.isVolunteer);
 
           if (sportsClub === region) {
             if (userIsCounted) {
