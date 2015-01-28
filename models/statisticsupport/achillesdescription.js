@@ -4,7 +4,7 @@ module.exports = function(Bookshelf) {
   var exports = {};
   exports.humanName = "Stats Achilles";
   //exports.databaseName = "sports_statistic";
-  exports.databasename = "stats_achilles";
+  exports.databaseName = "stats_achilles";
   exports.typeProperties = {
     contains: [],
     containsRelated: [],

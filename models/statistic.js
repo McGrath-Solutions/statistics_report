@@ -251,6 +251,11 @@ module.exports = (function() {
   };
 
   var installStatistic = function(eventType, statistic) {
+    console.log("BEFORE");
+    for (var key in Object.keys(TypeTable)) {
+      console.log("%s -- %s", key, TypeTable[key]);
+    }
+
     TypeTable[statistic.humanName] = statistic.databaseName;
     TypeProperties[statistic.databaseName] = statistic.typeProperties;
 
@@ -268,12 +273,18 @@ module.exports = (function() {
     for (var i = 0; i < allProperties.length; i++) {
       var prop = allProperties[i];
       var format = statistic.typePropertyFormat[prop];
+      console.log("FORMAT: " + format);
+
       switch (format) {
-        case STANDARD, USER_ID, EVENT_ID:
+        case STANDARD:
+        case USER_ID:
+        case EVENT_ID:
+        console.log("INSTALL STANDARD");
         PropertyFetchTable[prop] = standardFetch(prop);
         break;
 
         case CONTAINS:
+        console.log("INSTALL CONTAINS");
         if (!statistic.fetchMethods[prop]) {
           throw new Error("Unspecified fetch methods for CONTAINS property " + prop);
         }
@@ -381,9 +392,23 @@ module.exports = (function() {
     var properties = related.concat(contains);
     var funcList = [];
     var init = {};
+    
+    console.log("PROPERTIES"); 
+    console.log(properties);
+
+    console.log("PROPERTY FETCH TABLE FUNCS");
+    var prop_keys = Object.keys(PropertyFetchTable);
+    for (var i = 0; i < prop_keys.length; i++) {
+      var key = prop_keys[i];
+      console.log("%s -- %s", key, PropertyFetchTable[key]);
+    }
+
     for (var i = 0; i < properties.length; i++) {
       var prop = properties[i];
       var func = PropertyFetchTable[prop];
+     
+      console.log("FETCH FUNCTION FOR %s: ", prop); 
+      console.log(func);
 
       if (func.length === 2) { // Function is asynchronous and expects callback
         funcList[funcList.length] = (function(prop, func) {
@@ -420,6 +445,7 @@ module.exports = (function() {
    ********************************************************************************************/
   Statistic.loadObjects = function(type, callback) {
     var entityType = TypeTable[type] || type;
+
     var StatisticNode = getStatisticNode(entityType);
     var related = TypeProperties[entityType].related;
     var containsRelated = TypeProperties[entityType].containsRelated;
@@ -458,6 +484,7 @@ module.exports = (function() {
           return callback(null, objects);
         })
     }).catch(function(err) {
+      console.log("ERROR RECEIVED");
       callback(err);
     });
   };

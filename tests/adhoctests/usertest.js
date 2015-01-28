@@ -33,6 +33,7 @@ User.loadObjects(function(err, objects) {
   var nash = 0;
   for (var i = 0; i < objects.length; i++) {
     var user = objects[i];
+    console.log(user);
     if (user.isAdmin || user.isGuest) {
       count++;
     } else {
