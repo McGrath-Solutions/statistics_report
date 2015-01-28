@@ -1,0 +1,4 @@
+{
+  "key": "/etc/nginx/ssl/ssl.key",
+  "cert": "/etc/nginx/ssl/ssl.crt"
+}
