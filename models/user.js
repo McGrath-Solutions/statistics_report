@@ -116,6 +116,7 @@ module.exports = (function() {
     obj.isGuest = obj.roles.indexOf("guest") > -1;
     obj.isAdmin = obj.roles.indexOf("administrator") > -1;
     obj.isVolunteer = obj.roles.indexOf("volunteer") > -1;
+    obj.isRenew = obj.roles.indexOf("renew") > -1;
 
     // Check if the user is a veteran
     var veteranStatus = model.related('isVeteran').attributes.field_veteran_status_value

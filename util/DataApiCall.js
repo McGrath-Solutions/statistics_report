@@ -520,7 +520,8 @@ function getMonthlyMembership(relevantDate, region, done) {
           console.log(user);
 
           // Skip admin and guest
-          if (user.isAdmin || user.isGuest || user.pending || user.isVolunteer) {
+          if (user.isAdmin || user.isGuest || user.pending || user.isVolunteer
+                || user.isRenew) {
             continue;
           }
 
