@@ -533,9 +533,7 @@ function getMonthlyMembership(relevantDate, region, done) {
           }
 
           if (sportsClub === region) {
-            if (userIsCounted) {
-              relevantUsers++;
-            }
+            relevantUsers++;
           }
 
           var genderCounts = genderCountsArrays[sportsClub];
