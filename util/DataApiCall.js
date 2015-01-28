@@ -281,6 +281,7 @@ function getMonthlyProgramming(relevantDate, region, done) {
 
 
             var userAgeGroup = user.ageGroup;
+
             counts.totals[userAgeGroup]++;
             counts["club"][registration.sport][userAgeGroup]++;
           }
@@ -496,7 +497,7 @@ function getMonthlyMembership(relevantDate, region, done) {
 
       User.loadObjects(function(err, objects) {
         if (err) {
-          console.error("Big trubble");
+          console.error("Error while processing loaded objects");
           console.error(err);
           callback(err);
           return;
@@ -506,7 +507,11 @@ function getMonthlyMembership(relevantDate, region, done) {
         var relevantUsers = 0;
         console.log(numUsers);
         for (var i = 0; i < numUsers; i++) {
+
+          
+
           var user = objects[i];
+          console.log(user);
 
           // Skip admin and guest
           if (user.isAdmin || user.isGuest) {
@@ -521,8 +526,14 @@ function getMonthlyMembership(relevantDate, region, done) {
             sportsClub = "statewide";
           }
 
+          // Helper function to test if a given user is considered 
+          // active (not members with volunteer or renew)
+          var userIsCounted = (!user.pending) && (!user.isVolunteer);
+
           if (sportsClub === region) {
-            relevantUsers++;
+            if (userIsCounted) {
+              relevantUsers++;
+            }
           }
 
           var genderCounts = genderCountsArrays[sportsClub];
