@@ -8,7 +8,7 @@ var Bookshelf = require('bookshelf')(knex);
 
 module.exports = (function() {
 
-  var relatedProperties = ['roles', 'dateOfBirth', 'gender', 'isVeteran', 
+  var relatedProperties = ['roles', 'registeringAs', 'dateOfBirth', 'gender', 'isVeteran', 
     'firstName', 'lastName', 'phone', 'sportsClub', 'ageGrouping'];
 
   /* The underlying user bookshelf model */
@@ -17,6 +17,9 @@ module.exports = (function() {
     idAttribute: 'uid',
     roles: function() {
       return this.hasMany(Role, 'uid').through(UserRole, "rid");
+    },
+    registeringAs: function() {
+      return this.hasOne(UserRegisteringAs, 'entity_id');
     },
     dateOfBirth: function() {
       return this.hasOne(UserDateOfBirth, 'entity_id');
@@ -92,6 +95,7 @@ module.exports = (function() {
     obj.firstName = model.related('firstName').attributes.field_first_name_value;
     obj.lastName = model.related('lastName').attributes.field_last_name_value;
     obj.phone = model.related('phone').attributes.field_phone_value;
+    obj.registeringAs = model.related('registeringAs').attributes.field_registering_as_value;
     // obj.membershipType = model.related('membershipType').attributes.field_membership_type_value;
 
     // console.log(model.related('roles').models);
@@ -115,7 +119,8 @@ module.exports = (function() {
     obj.active = !obj.pending;
     obj.isGuest = obj.roles.indexOf("guest") > -1;
     obj.isAdmin = obj.roles.indexOf("administrator") > -1;
-    obj.isVolunteer = obj.roles.indexOf("volunteer") > -1;
+    // obj.isVolunteer = obj.roles.indexOf("volunteer") > -1;
+    obj.isVolunteer = obj.registeringAs === "Volunteer";
     obj.isRenew = obj.roles.indexOf("renew") > -1;
 
     // Check if the user is a veteran
@@ -234,6 +239,10 @@ module.exports = (function() {
   var UserRole = Bookshelf.Model.extend({
     tableName: 'users_roles',
     idAttribute: 'rid'
+  });
+
+  var UserRegisteringAs = Bookshelf.Model.extend({
+    tableName: 'field_data_field_registering_as'
   });
 
   var UserDateOfBirth = Bookshelf.Model.extend({
