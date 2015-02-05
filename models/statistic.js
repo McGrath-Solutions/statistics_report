@@ -53,7 +53,7 @@ module.exports = (function() {
    * Stored within the Node table of the Drupal database                                  */
   var TypeTable = {
     "Stats Cycling": "stats_cycling",
-    "Stats Bowling": "bowling_scores",
+    "Stats Bowling": "stats_bowling",
     "Stats Health Check": "stats_health_check",
     "Stats Goalball Tournament": "goalball_score_board",
     "Stats Goalball": "stats_goalball"
@@ -77,7 +77,7 @@ module.exports = (function() {
         "event": "one"
       }
     },
-    'bowling_scores': {
+    'stats_bowling': {
       contains: [],
       containsRelated: [],
       related: [],
